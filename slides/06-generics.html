@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Chapter 6: 제네릭 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section class="chapter-title">
+        <div class="chapter-number">Chapter 6</div>
+        <h1>제네릭</h1>
+        <p class="subtitle">타입을 매개변수로 만드는 마법</p>
+        <br>
+        <p style="font-size:0.6em; color:#888;">
+          <span class="badge badge-blue">Generic Functions</span>
+          <span class="badge badge-green">Constraints</span>
+          <span class="badge badge-orange">Utility Types</span>
+        </p>
+      </section>
+
+      <!-- Slide 2: Why Generics? -->
+      <section>
+        <h2>왜 제네릭이 필요한가?</h2>
+        <p>타입 안전성과 재사용성을 동시에 확보</p>
+        <div class="two-columns">
+          <div>
+            <h3>문제 상황</h3>
+            <pre><code class="typescript" data-trim data-noescape>
+// 방법 1: 각 타입마다 함수를 만든다?
+function identityNumber(arg: number): number {
+  return arg;
+}
+function identityString(arg: string): string {
+  return arg;
+}
+// ... 타입마다 계속 만들어야 함
+
+// 방법 2: any를 사용한다?
+function identityAny(arg: any): any {
+  return arg;
+}
+// 타입 안전성이 사라짐!
+const result = identityAny("hello");
+result.toFixed(); // 런타임 에러!
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <h3>제네릭으로 해결!</h3>
+            <pre><code class="typescript" data-trim data-noescape>
+function identity&lt;T&gt;(arg: T): T {
+  return arg;
+}
+
+// 타입 추론
+const str = identity("hello");
+// str: string
+
+const num = identity(42);
+// num: number
+
+// 명시적 타입 지정도 가능
+const bool = identity&lt;boolean&gt;(true);
+// bool: boolean
+
+// 타입 안전성 보장!
+str.toUpperCase(); // OK
+num.toFixed();     // OK
+            </code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 3: Generic Functions -->
+      <section>
+        <h2>제네릭 함수</h2>
+        <p><code>&lt;T&gt;</code>는 타입 변수 - 호출 시 실제 타입으로 치환됩니다</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// 다중 타입 매개변수
+function pair&lt;T, U&gt;(first: T, second: U): [T, U] {
+  return [first, second];
+}
+
+const p1 = pair("이름", 30);        // [string, number]
+const p2 = pair(true, [1, 2, 3]);   // [boolean, number[]]
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 배열 관련 유틸리티
+function firstElement&lt;T&gt;(arr: T[]): T | undefined {
+  return arr[0];
+}
+
+function map&lt;Input, Output&gt;(
+  arr: Input[],
+  fn: (item: Input) => Output
+): Output[] {
+  return arr.map(fn);
+}
+
+const names = firstElement(["Alice", "Bob"]);  // string | undefined
+const lengths = map(["hello", "world"], s => s.length); // number[]
+        </code></pre>
+        <div class="tip fragment">
+          관례: <code>T</code>(Type), <code>U</code>(Second type), <code>K</code>(Key), <code>V</code>(Value), <code>E</code>(Element)
+        </div>
+      </section>
+
+      <!-- Slide 4: Generic Interfaces -->
+      <section>
+        <h2>제네릭 인터페이스</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+// API 응답을 위한 제네릭 인터페이스
+interface ApiResponse&lt;T&gt; {
+  success: boolean;
+  data: T;
+  error?: string;
+  timestamp: number;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+}
+
+// 같은 구조, 다른 데이터 타입!
+const userResponse: ApiResponse&lt;User&gt; = {
+  success: true,
+  data: { id: 1, name: "홍길동", email: "hong@mail.com" },
+  timestamp: Date.now()
+};
+
+const productResponse: ApiResponse&lt;Product[]&gt; = {
+  success: true,
+  data: [
+    { id: 1, title: "TypeScript 책", price: 35000 },
+    { id: 2, title: "React 책", price: 30000 }
+  ],
+  timestamp: Date.now()
+};
+        </code></pre>
+      </section>
+
+      <!-- Slide 5: Generic Interfaces - Repository Pattern -->
+      <section>
+        <h2>제네릭 인터페이스 실전: Repository 패턴</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+interface Repository&lt;T, ID = number&gt; {
+  findById(id: ID): Promise&lt;T | null&gt;;
+  findAll(): Promise&lt;T[]&gt;;
+  create(item: Omit&lt;T, "id"&gt;): Promise&lt;T&gt;;
+  update(id: ID, item: Partial&lt;T&gt;): Promise&lt;T&gt;;
+  delete(id: ID): Promise&lt;boolean&gt;;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+class UserRepository implements Repository&lt;User&gt; {
+  private users: User[] = [];
+
+  async findById(id: number): Promise&lt;User | null&gt; {
+    return this.users.find(u => u.id === id) || null;
+  }
+
+  async findAll(): Promise&lt;User[]&gt; {
+    return [...this.users];
+  }
+
+  async create(item: Omit&lt;User, "id"&gt;): Promise&lt;User&gt; {
+    const user = { ...item, id: this.users.length + 1 };
+    this.users.push(user);
+    return user;
+  }
+
+  async update(id: number, item: Partial&lt;User&gt;): Promise&lt;User&gt; {
+    const index = this.users.findIndex(u => u.id === id);
+    this.users[index] = { ...this.users[index], ...item };
+    return this.users[index];
+  }
+
+  async delete(id: number): Promise&lt;boolean&gt; {
+    this.users = this.users.filter(u => u.id !== id);
+    return true;
+  }
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 6: Generic Classes -->
+      <section>
+        <h2>제네릭 클래스</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+class Stack&lt;T&gt; {
+  private items: T[] = [];
+
+  push(item: T): void {
+    this.items.push(item);
+  }
+
+  pop(): T | undefined {
+    return this.items.pop();
+  }
+
+  peek(): T | undefined {
+    return this.items[this.items.length - 1];
+  }
+
+  get size(): number {
+    return this.items.length;
+  }
+
+  isEmpty(): boolean {
+    return this.items.length === 0;
+  }
+
+  toArray(): T[] {
+    return [...this.items];
+  }
+}
+
+// 타입별로 안전한 스택
+const numberStack = new Stack&lt;number&gt;();
+numberStack.push(1);
+numberStack.push(2);
+// numberStack.push("3"); // Error! number만 가능
+
+const stringStack = new Stack&lt;string&gt;();
+stringStack.push("hello");
+const top = stringStack.peek(); // string | undefined
+        </code></pre>
+      </section>
+
+      <!-- Slide 7: Generic Constraints -->
+      <section>
+        <h2>제네릭 제약조건 (Constraints)</h2>
+        <p><code>extends</code>로 타입 매개변수를 제한</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// 문제: T가 어떤 타입인지 모르니 .length에 접근 불가
+// function logLength&lt;T&gt;(arg: T): void {
+//   console.log(arg.length); // Error: T에 length가 없을 수 있음
+// }
+
+// 해결: 제약조건으로 length가 있는 타입만 허용
+interface HasLength {
+  length: number;
+}
+
+function logLength&lt;T extends HasLength&gt;(arg: T): T {
+  console.log(`길이: ${arg.length}`);
+  return arg;
+}
+
+logLength("hello");        // OK: string에 length 있음
+logLength([1, 2, 3]);      // OK: 배열에 length 있음
+logLength({ length: 10 }); // OK: length 프로퍼티 있음
+// logLength(123);          // Error: number에 length 없음
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 객체의 특정 키로 값을 가져오는 함수
+function getProperty&lt;T, K extends keyof T&gt;(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+const user = { name: "홍길동", age: 30, email: "hong@mail.com" };
+const name = getProperty(user, "name");   // string
+const age = getProperty(user, "age");     // number
+// getProperty(user, "phone");            // Error: "phone"은 keyof User가 아님
+        </code></pre>
+      </section>
+
+      <!-- Slide 8: Type Parameters in Constraints -->
+      <section>
+        <h2>제약조건에서 타입 매개변수 사용</h2>
+        <p>하나의 타입 매개변수를 다른 타입 매개변수의 제약에 활용</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// K는 T의 키 중 하나여야 함
+function pick&lt;T, K extends keyof T&gt;(obj: T, keys: K[]): Pick&lt;T, K&gt; {
+  const result = {} as Pick&lt;T, K&gt;;
+  keys.forEach(key => {
+    result[key] = obj[key];
+  });
+  return result;
+}
+
+const user = {
+  id: 1,
+  name: "홍길동",
+  email: "hong@mail.com",
+  password: "secret123"
+};
+
+// 안전하게 필요한 필드만 추출
+const publicUser = pick(user, ["id", "name", "email"]);
+// 타입: Pick&lt;typeof user, "id" | "name" | "email"&gt;
+// { id: number; name: string; email: string }
+
+// pick(user, ["phone"]); // Error: "phone"은 유효한 키가 아님
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 값 할당 시 타입 안전성
+function assign&lt;T extends object, U extends Partial&lt;T&gt;&gt;(
+  target: T,
+  source: U
+): T & U {
+  return { ...target, ...source };
+}
+
+const updated = assign(
+  { name: "홍길동", age: 30 },
+  { age: 31 }  // OK: Partial&lt;T&gt;에 해당
+);
+// assign({ name: "홍길동" }, { foo: "bar" }); // Error!
+        </code></pre>
+      </section>
+
+      <!-- Slide 9: Utility Types - Partial, Required, Readonly -->
+      <section>
+        <h2>유틸리티 타입 (1): Partial, Required, Readonly</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  age?: number;
+}
+        </code></pre>
+        <div class="two-columns">
+          <div class="fragment">
+            <h3>Partial&lt;T&gt;</h3>
+            <pre><code class="typescript" data-trim data-noescape>
+// 모든 프로퍼티를 선택적으로
+type PartialUser = Partial&lt;User&gt;;
+// {
+//   id?: number;
+//   name?: string;
+//   email?: string;
+//   age?: number;
+// }
+
+// 업데이트 함수에 유용
+function updateUser(
+  id: number,
+  updates: Partial&lt;User&gt;
+) {
+  // 일부 필드만 업데이트
+}
+
+updateUser(1, { name: "새이름" }); // OK!
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <h3>Required&lt;T&gt; / Readonly&lt;T&gt;</h3>
+            <pre><code class="typescript" data-trim data-noescape>
+// 모든 프로퍼티를 필수로
+type RequiredUser = Required&lt;User&gt;;
+// age도 필수가 됨!
+
+// 모든 프로퍼티를 읽기전용으로
+type FrozenUser = Readonly&lt;User&gt;;
+// {
+//   readonly id: number;
+//   readonly name: string;
+//   readonly email: string;
+//   readonly age?: number;
+// }
+
+const user: FrozenUser = {
+  id: 1, name: "홍길동",
+  email: "hong@mail.com"
+};
+// user.name = "변경"; // Error!
+            </code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 10: Utility Types - Record, Pick, Omit -->
+      <section>
+        <h2>유틸리티 타입 (2): Record, Pick, Omit</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  role: "admin" | "user";
+}
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// Record&lt;K, V&gt;: 키 타입 K, 값 타입 V인 객체
+type Roles = "admin" | "editor" | "viewer";
+type RolePermissions = Record&lt;Roles, string[]&gt;;
+
+const permissions: RolePermissions = {
+  admin: ["read", "write", "delete"],
+  editor: ["read", "write"],
+  viewer: ["read"]
+};
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// Pick&lt;T, K&gt;: T에서 K 프로퍼티만 선택
+type UserProfile = Pick&lt;User, "id" | "name" | "email"&gt;;
+// { id: number; name: string; email: string }
+
+// Omit&lt;T, K&gt;: T에서 K 프로퍼티만 제외
+type UserWithoutPassword = Omit&lt;User, "password"&gt;;
+// { id: number; name: string; email: string; role: ... }
+
+// 조합 활용: 생성 시 id 제외 + password 필수
+type CreateUserDTO = Omit&lt;User, "id"&gt;;
+type UpdateUserDTO = Partial&lt;Omit&lt;User, "id" | "password"&gt;&gt;;
+        </code></pre>
+      </section>
+
+      <!-- Slide 11: Conditional Types with Generics -->
+      <section>
+        <h2>조건부 타입과 제네릭</h2>
+        <p>삼항 연산자처럼 동작하는 타입 레벨 조건문</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// 기본 형태: T extends U ? X : Y
+type IsString&lt;T&gt; = T extends string ? "yes" : "no";
+
+type A = IsString&lt;string&gt;;    // "yes"
+type B = IsString&lt;number&gt;;    // "no"
+type C = IsString&lt;"hello"&gt;;   // "yes"
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 실전 활용: 응답 타입 결정
+type ApiEndpoint = "users" | "posts" | "comments";
+
+interface User { id: number; name: string; }
+interface Post { id: number; title: string; }
+interface Comment { id: number; body: string; }
+
+type ResponseType&lt;T extends ApiEndpoint&gt; =
+  T extends "users" ? User[] :
+  T extends "posts" ? Post[] :
+  T extends "comments" ? Comment[] :
+  never;
+
+// 엔드포인트에 따라 반환 타입이 자동 결정!
+async function fetchData&lt;T extends ApiEndpoint&gt;(
+  endpoint: T
+): Promise&lt;ResponseType&lt;T&gt;&gt; {
+  const response = await fetch(`/api/${endpoint}`);
+  return response.json();
+}
+
+const users = await fetchData("users");     // User[]
+const posts = await fetchData("posts");     // Post[]
+        </code></pre>
+      </section>
+
+      <!-- Slide 12: keyof and typeof with Generics -->
+      <section>
+        <h2>keyof와 typeof 활용</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+// keyof: 객체 타입의 모든 키를 유니온으로 추출
+interface Config {
+  host: string;
+  port: number;
+  debug: boolean;
+}
+
+type ConfigKey = keyof Config; // "host" | "port" | "debug"
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// typeof: 값에서 타입을 추출
+const defaultConfig = {
+  host: "localhost",
+  port: 3000,
+  debug: false
+} as const;
+
+type ConfigType = typeof defaultConfig;
+// { readonly host: "localhost"; readonly port: 3000; readonly debug: false }
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// keyof + typeof + 제네릭 조합
+function getConfigValue&lt;K extends keyof typeof defaultConfig&gt;(
+  key: K
+): typeof defaultConfig[K] {
+  return defaultConfig[key];
+}
+
+const host = getConfigValue("host");   // "localhost" (리터럴 타입!)
+const port = getConfigValue("port");   // 3000
+// getConfigValue("unknown");          // Error!
+        </code></pre>
+      </section>
+
+      <!-- Slide 13: Mapped Types -->
+      <section>
+        <h2>매핑된 타입 (Mapped Types) 기초</h2>
+        <p>기존 타입을 변환하여 새 타입을 생성</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// Partial의 내부 구현 원리
+type MyPartial&lt;T&gt; = {
+  [K in keyof T]?: T[K];
+};
+
+// Readonly의 내부 구현 원리
+type MyReadonly&lt;T&gt; = {
+  readonly [K in keyof T]: T[K];
+};
+
+// Required의 내부 구현 원리
+type MyRequired&lt;T&gt; = {
+  [K in keyof T]-?: T[K];  // -?로 선택적 제거
+};
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 커스텀 매핑: 모든 프로퍼티를 nullable로
+type Nullable&lt;T&gt; = {
+  [K in keyof T]: T[K] | null;
+};
+
+interface User {
+  name: string;
+  age: number;
+}
+
+type NullableUser = Nullable&lt;User&gt;;
+// { name: string | null; age: number | null }
+
+// 모든 프로퍼티를 Promise로 감싸기
+type Async&lt;T&gt; = {
+  [K in keyof T]: Promise&lt;T[K]&gt;;
+};
+
+type AsyncUser = Async&lt;User&gt;;
+// { name: Promise&lt;string&gt;; age: Promise&lt;number&gt; }
+        </code></pre>
+      </section>
+
+      <!-- Slide 14: Utility Types Overview Table -->
+      <section>
+        <h2>유틸리티 타입 한눈에 보기</h2>
+        <table class="compare-table" style="font-size: 0.7em;">
+          <thead>
+            <tr>
+              <th>유틸리티 타입</th>
+              <th>설명</th>
+              <th>사용 예</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fragment">
+              <td><code>Partial&lt;T&gt;</code></td>
+              <td>모든 프로퍼티 선택적</td>
+              <td>업데이트 DTO</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Required&lt;T&gt;</code></td>
+              <td>모든 프로퍼티 필수</td>
+              <td>완전한 설정 객체 보장</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Readonly&lt;T&gt;</code></td>
+              <td>모든 프로퍼티 읽기전용</td>
+              <td>불변 상태 관리</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Record&lt;K, V&gt;</code></td>
+              <td>K를 키, V를 값으로</td>
+              <td>맵/사전 객체 정의</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Pick&lt;T, K&gt;</code></td>
+              <td>T에서 K만 선택</td>
+              <td>공개 API 응답 필터링</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Omit&lt;T, K&gt;</code></td>
+              <td>T에서 K 제외</td>
+              <td>비밀번호 제거 등</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Extract&lt;T, U&gt;</code></td>
+              <td>T에서 U에 할당 가능한 것만</td>
+              <td>유니온 필터링</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>Exclude&lt;T, U&gt;</code></td>
+              <td>T에서 U에 할당 가능한 것 제외</td>
+              <td>유니온에서 제거</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>NonNullable&lt;T&gt;</code></td>
+              <td>null, undefined 제거</td>
+              <td>안전한 값 보장</td>
+            </tr>
+            <tr class="fragment">
+              <td><code>ReturnType&lt;T&gt;</code></td>
+              <td>함수 반환 타입 추출</td>
+              <td>함수 결과 타입 재사용</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Slide 15: Real-World Generic API Wrapper -->
+      <section>
+        <h2>실전 예제: 제네릭 API 클라이언트</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+interface ApiResponse&lt;T&gt; {
+  data: T;
+  status: number;
+  message: string;
+}
+
+interface PaginatedData&lt;T&gt; {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasNext: boolean;
+}
+
+class ApiClient {
+  constructor(private baseUrl: string) {}
+
+  private async request&lt;T&gt;(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise&lt;ApiResponse&lt;T&gt;&gt; {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async get&lt;T&gt;(endpoint: string): Promise&lt;T&gt; {
+    const result = await this.request&lt;T&gt;(endpoint);
+    return result.data;
+  }
+
+  async getList&lt;T&gt;(
+    endpoint: string,
+    page = 1
+  ): Promise&lt;PaginatedData&lt;T&gt;&gt; {
+    return this.get&lt;PaginatedData&lt;T&gt;&gt;(
+      `${endpoint}?page=${page}`
+    );
+  }
+
+  async post&lt;T, B&gt;(endpoint: string, body: B): Promise&lt;T&gt; {
+    const result = await this.request&lt;T&gt;(endpoint, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    return result.data;
+  }
+}
+
+// 사용 - 완벽한 타입 추론!
+const api = new ApiClient("https://api.example.com");
+
+interface User { id: number; name: string; }
+interface CreateUserDTO { name: string; email: string; }
+
+const user = await api.get&lt;User&gt;("/users/1");         // User
+const users = await api.getList&lt;User&gt;("/users");       // PaginatedData&lt;User&gt;
+const newUser = await api.post&lt;User, CreateUserDTO&gt;(
+  "/users", { name: "홍길동", email: "hong@mail.com" }
+);  // User
+        </code></pre>
+      </section>
+
+      <!-- Slide 16: Generic with Default Types -->
+      <section>
+        <h2>제네릭 기본값 (Default Types)</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+// 타입 매개변수에 기본값 지정
+interface EventEmitter&lt;Events extends Record&lt;string, any&gt; = Record&lt;string, any&gt;&gt; {
+  on&lt;K extends keyof Events&gt;(event: K, handler: (data: Events[K]) => void): void;
+  emit&lt;K extends keyof Events&gt;(event: K, data: Events[K]): void;
+}
+
+// 이벤트 맵 정의
+interface AppEvents {
+  login: { userId: string; timestamp: number };
+  logout: { userId: string };
+  error: { message: string; code: number };
+}
+
+// 타입 안전한 이벤트!
+declare const emitter: EventEmitter&lt;AppEvents&gt;;
+
+emitter.on("login", (data) => {
+  console.log(data.userId);     // OK: string
+  console.log(data.timestamp);  // OK: number
+});
+
+emitter.emit("error", {
+  message: "서버 오류",
+  code: 500
+});
+
+// emitter.emit("login", { foo: "bar" }); // Error!
+        </code></pre>
+        <div class="tip fragment">
+          기본값이 있으면 타입 인자를 생략해도 동작합니다:<br>
+          <code>EventEmitter</code> = <code>EventEmitter&lt;Record&lt;string, any&gt;&gt;</code>
+        </div>
+      </section>
+
+      <!-- Slide 17: Common Patterns -->
+      <section>
+        <h2>자주 쓰는 제네릭 패턴</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+// 1. 타입 안전한 Object.keys
+function typedKeys&lt;T extends object&gt;(obj: T): (keyof T)[] {
+  return Object.keys(obj) as (keyof T)[];
+}
+
+const user = { name: "홍길동", age: 30 };
+const keys = typedKeys(user); // ("name" | "age")[]
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 2. 제네릭 상태 관리 훅
+function useState&lt;T&gt;(initial: T): [() => T, (newValue: T) => void] {
+  let value = initial;
+  return [
+    () => value,
+    (newValue: T) => { value = newValue; }
+  ];
+}
+
+const [getName, setName] = useState("홍길동");
+setName("김철수");
+// setName(123); // Error: string만 가능!
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 3. 제네릭 팩토리
+function createArray&lt;T&gt;(length: number, value: T): T[] {
+  return Array.from({ length }, () => value);
+}
+
+const zeros = createArray(5, 0);          // number[]
+const hellos = createArray(3, "hello");   // string[]
+        </code></pre>
+      </section>
+
+      <!-- Slide 18: Summary -->
+      <section>
+        <h2>Chapter 6 요약</h2>
+        <div class="key-point">
+          <h3>핵심 정리</h3>
+          <ul>
+            <li class="fragment"><strong>제네릭</strong>: 타입을 매개변수화하여 재사용성과 타입 안전성 확보</li>
+            <li class="fragment"><strong>제약조건</strong>: <code>T extends U</code>로 허용 범위 제한</li>
+            <li class="fragment"><strong>제네릭 인터페이스/클래스</strong>: 다양한 타입에 대응하는 구조 설계</li>
+            <li class="fragment"><strong>유틸리티 타입</strong>: Partial, Pick, Omit, Record 등 내장 제네릭</li>
+            <li class="fragment"><strong>조건부 타입</strong>: 타입 레벨의 if-else 분기</li>
+            <li class="fragment"><strong>매핑된 타입</strong>: 기존 타입 변환으로 새 타입 생성</li>
+            <li class="fragment"><strong>keyof / typeof</strong>: 타입 정보 추출의 핵심 도구</li>
+          </ul>
+        </div>
+        <br>
+        <p class="fragment">
+          <a href="05-classes.html" style="color: #888; font-size: 0.8em;">
+            &larr; 이전: Chapter 5 - 클래스
+          </a>
+          &nbsp;&nbsp;|&nbsp;&nbsp;
+          <a href="07-type-narrowing.html" style="color: var(--ts-blue);">
+            다음 챕터: Chapter 7 - 타입 좁히기 &rarr;
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

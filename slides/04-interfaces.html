@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 4: 인터페이스 &amp; 타입 별칭 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section class="chapter-title" data-transition="zoom">
+        <span class="chapter-number">Chapter 04</span>
+        <h1>인터페이스 &amp; 타입 별칭</h1>
+        <p class="subtitle">복잡한 타입 구조를 우아하게 정의하는 방법</p>
+        <br>
+        <p><a href="../index.html" style="color: #888; font-size: 0.6em;">&#8592; 목차로 돌아가기</a></p>
+      </section>
+
+      <!-- Slide 2: Interface Basics -->
+      <section data-transition="slide">
+        <h2>인터페이스 기초</h2>
+        <div class="key-point">
+          <h3>핵심 개념</h3>
+          <p>인터페이스는 <strong>객체의 구조(shape)</strong>를 정의합니다.<br>
+          어떤 속성이 어떤 타입을 가져야 하는지 계약(contract)을 만듭니다.</p>
+        </div>
+        <pre><code class="language-typescript">// 인터페이스 정의
+interface User {
+  name: string;
+  age: number;
+  email: string;
+}
+
+// 인터페이스에 맞는 객체 생성
+const user: User = {
+  name: "홍길동",
+  age: 25,
+  email: "hong@example.com"
+};
+
+// 속성 누락 -> 에러
+const bad: User = {
+  name: "김철수"
+  // Error! age, email이 빠짐
+};
+
+// 없는 속성 추가 -> 에러
+const also_bad: User = {
+  name: "이영희",
+  age: 30,
+  email: "lee@example.com",
+  phone: "010-1234"  // Error! phone은 User에 없음
+};</code></pre>
+      </section>
+
+      <!-- Slide 3: Optional Properties -->
+      <section data-transition="slide">
+        <h2>선택적 속성 (Optional Properties)</h2>
+        <pre><code class="language-typescript">// ? 를 붙이면 선택적 속성
+interface User {
+  name: string;
+  age: number;
+  email?: string;      // 선택적
+  nickname?: string;   // 선택적
+}
+
+// email과 nickname 생략 가능
+const user1: User = { name: "Kim", age: 25 };
+const user2: User = { name: "Lee", age: 30, email: "lee@test.com" };
+
+// 선택적 속성 접근 시 undefined 가능성 처리
+function sendEmail(user: User): void {
+  if (user.email) {
+    // 이 블록에서 user.email은 string
+    console.log(`메일 발송: ${user.email}`);
+  } else {
+    console.log("이메일이 없습니다.");
+  }
+
+  // 옵셔널 체이닝
+  const domain = user.email?.split("@")[1];  // string | undefined
+}</code></pre>
+      </section>
+
+      <!-- Slide 4: Readonly Properties -->
+      <section data-transition="slide">
+        <h2>읽기 전용 속성 (Readonly)</h2>
+        <pre><code class="language-typescript">// readonly로 변경 불가 속성 만들기
+interface Config {
+  readonly host: string;
+  readonly port: number;
+  readonly database: string;
+}
+
+const config: Config = {
+  host: "localhost",
+  port: 5432,
+  database: "mydb"
+};
+
+config.port = 3000;  // Error! readonly 속성은 수정 불가
+
+// 객체 생성 시에만 값 할당 가능
+const newConfig: Config = {
+  host: "production.server.com",
+  port: 5432,
+  database: "prod_db"
+};
+
+// 실전 활용: 불변 데이터 모델
+interface Point {
+  readonly x: number;
+  readonly y: number;
+}
+
+function movePoint(point: Point, dx: number, dy: number): Point {
+  // 원본 수정 대신 새 객체 반환
+  return { x: point.x + dx, y: point.y + dy };
+}</code></pre>
+      </section>
+
+      <!-- Slide 5: Index Signatures -->
+      <section data-transition="slide">
+        <h2>인덱스 시그니처</h2>
+        <p>동적 속성 이름을 가진 객체 타입 정의</p>
+        <pre><code class="language-typescript">// 문자열 키에 대한 인덱스 시그니처
+interface Dictionary {
+  [key: string]: string;
+}
+
+const translations: Dictionary = {
+  hello: "안녕하세요",
+  goodbye: "안녕히 가세요",
+  thanks: "감사합니다"
+};
+
+translations["welcome"] = "환영합니다"; // OK
+
+// 숫자 키 인덱스 시그니처
+interface NumberList {
+  [index: number]: string;
+}
+
+const fruits: NumberList = ["사과", "바나나", "체리"];
+
+// 고정 속성 + 인덱스 시그니처 혼합
+interface ApiResponse {
+  status: number;             // 고정 속성
+  message: string;            // 고정 속성
+  [key: string]: unknown;     // 나머지 동적 속성
+}
+
+const response: ApiResponse = {
+  status: 200,
+  message: "OK",
+  data: { users: [] },       // OK - unknown 타입
+  timestamp: 1700000000       // OK - unknown 타입
+};</code></pre>
+      </section>
+
+      <!-- Slide 6: Extending Interfaces -->
+      <section data-transition="slide">
+        <h2>인터페이스 확장 (extends)</h2>
+        <pre><code class="language-typescript">// 기본 인터페이스
+interface Animal {
+  name: string;
+  age: number;
+}
+
+// 확장: 기존 속성 + 새 속성
+interface Dog extends Animal {
+  breed: string;
+  bark(): void;
+}
+
+interface Cat extends Animal {
+  indoor: boolean;
+  meow(): void;
+}
+
+const myDog: Dog = {
+  name: "멍멍이",
+  age: 3,
+  breed: "골든리트리버",
+  bark() { console.log("왈왈!"); }
+};
+
+// 다중 확장
+interface ServiceDog extends Dog {
+  certificationId: string;
+  task: "guide" | "therapy" | "search";
+}
+
+// 여러 인터페이스 동시 확장
+interface Pet extends Animal, Dog {
+  owner: string;
+}</code></pre>
+      </section>
+
+      <!-- Slide 7: Interface for Functions and Classes -->
+      <section data-transition="slide">
+        <h2>인터페이스: 함수와 클래스</h2>
+        <pre><code class="language-typescript">// 함수 타입 인터페이스
+interface SearchFunction {
+  (source: string, query: string): boolean;
+}
+
+const search: SearchFunction = (source, query) => {
+  return source.includes(query);
+};
+
+// 호출 시그니처 + 속성 (하이브리드 타입)
+interface Counter {
+  (start: number): void;    // 호출 가능
+  count: number;             // 속성도 가짐
+  reset(): void;             // 메서드도 가짐
+}
+
+// 클래스에서 인터페이스 구현
+interface Printable {
+  print(): string;
+}
+
+interface Loggable {
+  log(level: string): void;
+}
+
+class Document implements Printable, Loggable {
+  constructor(private content: string) {}
+
+  print(): string {
+    return this.content;
+  }
+
+  log(level: string): void {
+    console.log(`[${level}] ${this.content}`);
+  }
+}</code></pre>
+      </section>
+
+      <!-- Slide 8: Type Aliases -->
+      <section data-transition="slide">
+        <h2>타입 별칭 (Type Aliases)</h2>
+        <pre><code class="language-typescript">// 객체 타입 별칭
+type Point = {
+  x: number;
+  y: number;
+};
+
+// 원시 타입 별칭
+type ID = string | number;
+type Name = string;
+
+// 튜플 타입 별칭
+type Coordinate = [number, number];
+
+// 함수 타입 별칭
+type Formatter = (value: number) => string;
+
+// 유니온 타입 별칭
+type Status = "active" | "inactive" | "pending";
+type Theme = "light" | "dark";
+
+// 복합 타입 별칭
+type User = {
+  id: ID;
+  name: Name;
+  status: Status;
+  location: Coordinate;
+  format: Formatter;
+};
+
+const user: User = {
+  id: "user-001",
+  name: "Kim",
+  status: "active",
+  location: [37.5665, 126.978],
+  format: (v) => v.toFixed(2)
+};</code></pre>
+      </section>
+
+      <!-- Slide 9: Interface vs Type -->
+      <section data-transition="slide">
+        <h2>Interface vs Type 비교</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>기능</th>
+              <th>interface</th>
+              <th>type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>객체 구조 정의</td>
+              <td style="color: var(--ts-green);">O</td>
+              <td style="color: var(--ts-green);">O</td>
+            </tr>
+            <tr>
+              <td>extends (확장)</td>
+              <td style="color: var(--ts-green);">O (extends)</td>
+              <td style="color: var(--ts-green);">O (&amp; 교차)</td>
+            </tr>
+            <tr>
+              <td>implements (구현)</td>
+              <td style="color: var(--ts-green);">O</td>
+              <td style="color: var(--ts-green);">O</td>
+            </tr>
+            <tr>
+              <td>선언 병합</td>
+              <td style="color: var(--ts-green);">O (자동 병합)</td>
+              <td style="color: var(--ts-red);">X</td>
+            </tr>
+            <tr>
+              <td>유니온/교차 타입</td>
+              <td style="color: var(--ts-red);">X</td>
+              <td style="color: var(--ts-green);">O</td>
+            </tr>
+            <tr>
+              <td>원시 타입 별칭</td>
+              <td style="color: var(--ts-red);">X</td>
+              <td style="color: var(--ts-green);">O</td>
+            </tr>
+            <tr>
+              <td>튜플/매핑 타입</td>
+              <td style="color: var(--ts-red);">X</td>
+              <td style="color: var(--ts-green);">O</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="fragment tip" style="margin-top: 15px;">
+          <strong>일반 규칙:</strong> 객체 구조 정의 &rarr; <code>interface</code>,
+          유니온/교차/원시 &rarr; <code>type</code>. 팀 컨벤션을 따르세요.
+        </div>
+      </section>
+
+      <!-- Slide 10: Declaration Merging -->
+      <section data-transition="slide">
+        <h2>선언 병합 (Declaration Merging)</h2>
+        <p>interface만의 고유 기능: 같은 이름으로 여러 번 선언하면 자동 병합</p>
+        <pre><code class="language-typescript">// 선언 1
+interface Window {
+  title: string;
+}
+
+// 선언 2 - 자동으로 병합됨!
+interface Window {
+  appVersion: string;
+}
+
+// 결과: Window = { title: string; appVersion: string; }
+
+// 실전 활용: 라이브러리 타입 확장
+// express의 Request 객체에 사용자 정보 추가
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        role: string;
+      };
+    }
+  }
+}
+
+// 이제 req.user를 타입 안전하게 사용 가능
+// app.get("/", (req) => { req.user?.id; });</code></pre>
+
+        <div class="warning">
+          <strong>주의:</strong> <code>type</code>은 같은 이름으로 재선언하면 에러가 발생합니다.
+          <code>type</code>은 병합이 불가능합니다.
+        </div>
+      </section>
+
+      <!-- Slide 11: Union Types with Type Aliases -->
+      <section data-transition="slide">
+        <h2>유니온 타입과 타입 별칭</h2>
+        <pre><code class="language-typescript">// 문자열 리터럴 유니온
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+type StatusCode = 200 | 201 | 400 | 401 | 403 | 404 | 500;
+
+// 타입 유니온: 서로 다른 구조의 객체
+type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "square"; side: number }
+  | { kind: "rectangle"; width: number; height: number };
+
+function calculateArea(shape: Shape): number {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "square":
+      return shape.side ** 2;
+    case "rectangle":
+      return shape.width * shape.height;
+  }
+}
+
+// 다양한 결과 타입
+type Result&lt;T&gt; =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+function divide(a: number, b: number): Result&lt;number&gt; {
+  if (b === 0) return { success: false, error: "0으로 나눌 수 없습니다" };
+  return { success: true, data: a / b };
+}</code></pre>
+      </section>
+
+      <!-- Slide 12: Intersection Types -->
+      <section data-transition="slide">
+        <h2>교차 타입 (Intersection Types)</h2>
+        <p><code>&amp;</code>로 여러 타입을 합쳐 모든 속성을 가진 타입 생성</p>
+        <pre><code class="language-typescript">// 기본 교차 타입
+type HasName = { name: string };
+type HasAge = { age: number };
+type HasEmail = { email: string };
+
+type Person = HasName &amp; HasAge &amp; HasEmail;
+
+const person: Person = {
+  name: "Kim",
+  age: 25,
+  email: "kim@example.com"
+  // 3가지 타입의 모든 속성이 필요!
+};
+
+// interface extends와 비교
+interface Timestamped {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface SoftDeletable {
+  deletedAt: Date | null;
+  isDeleted: boolean;
+}
+
+// 교차 타입으로 조합
+type BaseEntity = Timestamped &amp; SoftDeletable;
+
+type User = BaseEntity &amp; {
+  id: string;
+  name: string;
+  email: string;
+};</code></pre>
+      </section>
+
+      <!-- Slide 13: Discriminated Unions -->
+      <section data-transition="slide">
+        <h2>판별 유니온 (Discriminated Unions)</h2>
+        <div class="key-point">
+          <h3>핵심 패턴</h3>
+          <p>공통 판별 속성(discriminant)으로 유니온 멤버를 구분하는 패턴.<br>
+          TypeScript에서 가장 강력하고 자주 사용되는 패턴 중 하나입니다.</p>
+        </div>
+        <pre><code class="language-typescript">// 판별 속성: type (각 멤버에서 다른 리터럴 값)
+type Action =
+  | { type: "LOGIN"; payload: { username: string; password: string } }
+  | { type: "LOGOUT" }
+  | { type: "FETCH_DATA"; payload: { url: string } }
+  | { type: "SET_ERROR"; payload: { message: string } };
+
+function reducer(state: any, action: Action) {
+  switch (action.type) {
+    case "LOGIN":
+      // action.payload.username 접근 가능
+      return { ...state, user: action.payload.username };
+    case "LOGOUT":
+      // payload 없음
+      return { ...state, user: null };
+    case "FETCH_DATA":
+      // action.payload.url 접근 가능
+      return { ...state, loading: true };
+    case "SET_ERROR":
+      // action.payload.message 접근 가능
+      return { ...state, error: action.payload.message };
+  }
+}</code></pre>
+      </section>
+
+      <!-- Slide 14: Discriminated Unions - Real Example -->
+      <section data-transition="slide">
+        <h2>판별 유니온 실전 예제</h2>
+        <pre><code class="language-typescript">// API 응답 타입 모델링
+type ApiResponse&lt;T&gt; =
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string; retryAfter?: number };
+
+function renderResponse&lt;T&gt;(response: ApiResponse&lt;T&gt;): string {
+  switch (response.status) {
+    case "loading":
+      return "로딩 중...";
+    case "success":
+      return `데이터: ${JSON.stringify(response.data)}`;
+    case "error":
+      return `에러: ${response.error}`;
+  }
+}
+
+// 결제 수단 모델링
+type PaymentMethod =
+  | { type: "card"; cardNumber: string; expiryDate: string }
+  | { type: "bank"; bankName: string; accountNumber: string }
+  | { type: "mobile"; phoneNumber: string; provider: string };
+
+function processPayment(method: PaymentMethod): void {
+  switch (method.type) {
+    case "card":
+      console.log(`카드 결제: ${method.cardNumber}`);
+      break;
+    case "bank":
+      console.log(`계좌 이체: ${method.bankName} ${method.accountNumber}`);
+      break;
+    case "mobile":
+      console.log(`모바일: ${method.provider} ${method.phoneNumber}`);
+      break;
+  }
+}</code></pre>
+      </section>
+
+      <!-- Slide 15: Utility Types - Partial, Required -->
+      <section data-transition="slide">
+        <h2>유틸리티 타입: Partial, Required</h2>
+        <pre><code class="language-typescript">interface User {
+  id: string;
+  name: string;
+  email: string;
+  age: number;
+}
+
+// Partial&lt;T&gt; - 모든 속성을 선택적으로
+type PartialUser = Partial&lt;User&gt;;
+// { id?: string; name?: string; email?: string; age?: number; }
+
+// 업데이트 함수에서 유용
+function updateUser(id: string, updates: Partial&lt;User&gt;): User {
+  const user = getUserById(id);
+  return { ...user, ...updates };
+}
+
+updateUser("1", { name: "새 이름" });        // name만 변경
+updateUser("1", { email: "new@email.com" }); // email만 변경
+
+// Required&lt;T&gt; - 모든 속성을 필수로
+interface Config {
+  host?: string;
+  port?: number;
+  debug?: boolean;
+}
+
+type RequiredConfig = Required&lt;Config&gt;;
+// { host: string; port: number; debug: boolean; }
+
+// 모든 설정이 확정된 최종 config
+function startServer(config: Required&lt;Config&gt;): void {
+  console.log(`${config.host}:${config.port}`);
+}</code></pre>
+      </section>
+
+      <!-- Slide 16: Utility Types - Pick, Omit -->
+      <section data-transition="slide">
+        <h2>유틸리티 타입: Pick, Omit</h2>
+        <pre><code class="language-typescript">interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Pick&lt;T, K&gt; - 특정 속성만 선택
+type UserProfile = Pick&lt;User, "id" | "name" | "email"&gt;;
+// { id: string; name: string; email: string; }
+
+// Omit&lt;T, K&gt; - 특정 속성만 제외
+type UserWithoutPassword = Omit&lt;User, "password"&gt;;
+// { id: string; name: string; email: string; createdAt: Date; updatedAt: Date; }
+
+// 실전 예: API 요청/응답 타입 분리
+type CreateUserRequest = Pick&lt;User, "name" | "email" | "password"&gt;;
+type UserResponse = Omit&lt;User, "password"&gt;;
+type UpdateUserRequest = Partial&lt;Pick&lt;User, "name" | "email"&gt;&gt;;
+
+// 조합 예시
+function createUser(data: CreateUserRequest): UserResponse {
+  const user: User = {
+    ...data,
+    id: generateId(),
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  // password를 제외하고 반환
+  const { password, ...response } = user;
+  return response;
+}</code></pre>
+      </section>
+
+      <!-- Slide 17: More Utility Types -->
+      <section data-transition="slide">
+        <h2>유틸리티 타입: Record, Readonly</h2>
+        <pre><code class="language-typescript">// Record&lt;K, V&gt; - 키 타입과 값 타입으로 객체 타입 생성
+type Role = "admin" | "editor" | "viewer";
+
+const permissions: Record&lt;Role, string[]&gt; = {
+  admin:  ["read", "write", "delete", "manage"],
+  editor: ["read", "write"],
+  viewer: ["read"]
+};
+
+// 점수판
+type StudentScores = Record&lt;string, number&gt;;
+const scores: StudentScores = {
+  "홍길동": 95,
+  "김철수": 88,
+  "이영희": 92
+};
+
+// Readonly&lt;T&gt; - 모든 속성을 readonly로
+interface Config {
+  host: string;
+  port: number;
+}
+
+const config: Readonly&lt;Config&gt; = {
+  host: "localhost",
+  port: 3000
+};
+
+config.port = 8080;  // Error! 모든 속성이 readonly
+
+// 깊은 불변성을 위한 재귀 타입
+type DeepReadonly&lt;T&gt; = {
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly&lt;T[K]&gt; : T[K];
+};</code></pre>
+      </section>
+
+      <!-- Slide 18: Practical Patterns -->
+      <section data-transition="slide">
+        <h2>실전 패턴 종합</h2>
+        <pre><code class="language-typescript">// 패턴: Entity 시스템
+interface BaseEntity {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface User extends BaseEntity {
+  name: string;
+  email: string;
+  role: "admin" | "user";
+}
+
+interface Post extends BaseEntity {
+  title: string;
+  content: string;
+  authorId: string;
+  tags: string[];
+  status: "draft" | "published" | "archived";
+}
+
+// Create 요청: id, 날짜 자동 생성이므로 제외
+type CreateDTO&lt;T extends BaseEntity&gt; = Omit&lt;T, keyof BaseEntity&gt;;
+type UpdateDTO&lt;T extends BaseEntity&gt; = Partial&lt;CreateDTO&lt;T&gt;&gt;;
+
+// 사용
+type CreateUserDTO = CreateDTO&lt;User&gt;;
+// { name: string; email: string; role: "admin" | "user"; }
+
+type UpdatePostDTO = UpdateDTO&lt;Post&gt;;
+// { title?: string; content?: string; authorId?: string;
+//   tags?: string[]; status?: "draft" | "published" | "archived"; }</code></pre>
+      </section>
+
+      <!-- Slide 19: Summary -->
+      <section data-transition="slide">
+        <h2>Chapter 4 정리</h2>
+        <table class="compare-table" style="font-size: 0.72em;">
+          <thead>
+            <tr>
+              <th>개념</th>
+              <th>문법</th>
+              <th>용도</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>인터페이스</td><td><code>interface User { }</code></td><td>객체 구조 정의</td></tr>
+            <tr><td>선택적 속성</td><td><code>name?: string</code></td><td>생략 가능한 속성</td></tr>
+            <tr><td>읽기 전용</td><td><code>readonly id: string</code></td><td>불변 속성</td></tr>
+            <tr><td>인덱스 시그니처</td><td><code>[key: string]: T</code></td><td>동적 키</td></tr>
+            <tr><td>extends</td><td><code>interface B extends A</code></td><td>확장</td></tr>
+            <tr><td>타입 별칭</td><td><code>type Point = { }</code></td><td>유니온, 교차 등</td></tr>
+            <tr><td>교차 타입</td><td><code>A &amp; B</code></td><td>타입 합치기</td></tr>
+            <tr><td>판별 유니온</td><td><code>{ type: "x" } | { type: "y" }</code></td><td>안전한 분기</td></tr>
+            <tr><td>Partial/Required</td><td><code>Partial&lt;T&gt;</code></td><td>선택적/필수 변환</td></tr>
+            <tr><td>Pick/Omit</td><td><code>Pick&lt;T, K&gt;</code></td><td>속성 선택/제외</td></tr>
+            <tr><td>Record</td><td><code>Record&lt;K, V&gt;</code></td><td>키-값 타입 객체</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Slide 20: Next Chapter -->
+      <section class="chapter-title" data-transition="zoom">
+        <span class="chapter-number">Next</span>
+        <h1>수고하셨습니다!</h1>
+        <br>
+        <p>
+          <a href="05-classes.html" style="color: var(--ts-blue); font-size: 1.2em;">
+            다음 챕터: 클래스 &#8594;
+          </a>
+        </p>
+        <br>
+        <p><a href="../index.html" style="color: #888; font-size: 0.7em;">&#8592; 목차로 돌아가기</a></p>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <a href="../index.html" style="color: #888;">TypeScript 완전 정복</a> | Chapter 04
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

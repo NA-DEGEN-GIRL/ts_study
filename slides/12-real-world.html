@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Chapter 12: 실전 패턴 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section>
+        <div class="chapter-title">
+          <div class="chapter-number">Chapter 12</div>
+          <h1>실전 패턴</h1>
+          <p class="subtitle">프로덕션 레벨 TypeScript 설계와 패턴</p>
+          <br>
+          <p>
+            <span class="badge badge-blue">Design Patterns</span>
+            <span class="badge badge-green">Type Safety</span>
+            <span class="badge badge-orange">Best Practices</span>
+            <span class="badge badge-red">Production</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 2: Project Setup Best Practices -->
+      <section>
+        <h2>프로젝트 설정 Best Practices</h2>
+        <p>엄격한 <code>tsconfig.json</code>으로 시작하세요</p>
+        <pre><code class="language-json" data-trim>
+{
+  "compilerOptions": {
+    // 엄격 모드 - 반드시 활성화!
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+
+    // 모듈 설정
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+
+    // 출력 설정
+    "outDir": "./dist",
+    "declaration": true,
+    "sourceMap": true,
+
+    // 코드 품질
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // 경로 별칭
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@models/*": ["src/models/*"],
+      "@utils/*": ["src/utils/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>팁:</strong> <code>"strict": true</code> 하나로 <code>strictNullChecks</code>, <code>noImplicitAny</code>, <code>strictFunctionTypes</code> 등 7개 옵션이 활성화됩니다.
+        </div>
+      </section>
+
+      <!-- Slide 3: Type-safe API Client -->
+      <section>
+        <h2>타입 안전한 API 클라이언트</h2>
+        <pre><code class="language-typescript" data-trim style="font-size: 0.78em;">
+// API 엔드포인트 스키마를 타입으로 정의
+interface ApiSchema {
+  '/users': {
+    GET: { response: User[]; query: { page?: number; limit?: number } };
+    POST: { response: User; body: CreateUserDto };
+  };
+  '/users/:id': {
+    GET: { response: User; params: { id: string } };
+    PUT: { response: User; params: { id: string }; body: UpdateUserDto };
+    DELETE: { response: void; params: { id: string } };
+  };
+  '/posts': {
+    GET: { response: Post[]; query: { authorId?: number } };
+    POST: { response: Post; body: CreatePostDto };
+  };
+}
+
+// 엔드포인트에서 메서드 추출
+type ApiMethod&lt;Path extends keyof ApiSchema&gt; = keyof ApiSchema[Path];
+
+// 응답 타입 추출
+type ApiResponse&lt;
+  Path extends keyof ApiSchema,
+  Method extends ApiMethod&lt;Path&gt;
+&gt; = ApiSchema[Path][Method] extends { response: infer R } ? R : never;
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>장점</h3>
+          <p>API 스키마를 한 곳에서 정의하면, 클라이언트 코드 전체에서 엔드포인트/메서드/요청/응답 타입이 자동으로 강제됩니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 4: Type-safe API Client - Usage -->
+      <section>
+        <h2>API 클라이언트 - 구현과 사용</h2>
+        <pre><code class="language-typescript" data-trim>
+class TypedApiClient {
+  constructor(private baseUrl: string) {}
+
+  async get&lt;Path extends keyof ApiSchema&gt;(
+    path: Path,
+    options?: ApiSchema[Path] extends { GET: { query: infer Q } }
+      ? { query?: Q }
+      : never
+  ): Promise&lt;ApiResponse&lt;Path, 'GET'&gt;&gt; {
+    const url = new URL(`${this.baseUrl}${path as string}`);
+    if (options && 'query' in options) {
+      const query = options.query as Record&lt;string, string&gt;;
+      Object.entries(query).forEach(([k, v]) =>
+        url.searchParams.set(k, String(v))
+      );
+    }
+    const res = await fetch(url.toString());
+    return res.json();
+  }
+
+  async post&lt;Path extends keyof ApiSchema&gt;(
+    path: Path,
+    body: ApiSchema[Path] extends { POST: { body: infer B } } ? B : never
+  ): Promise&lt;ApiResponse&lt;Path, 'POST'&gt;&gt; {
+    const res = await fetch(`${this.baseUrl}${path as string}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return res.json();
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+const api = new TypedApiClient('https://api.example.com');
+
+// 자동 완성과 타입 검증이 작동!
+const users = await api.get('/users', { query: { page: 1 } });
+//    ^? User[]
+
+const newPost = await api.post('/posts', {
+  title: '새 글',   // CreatePostDto 타입 강제
+  content: '내용',
+});
+//    ^? Post
+        </code></pre>
+      </section>
+
+      <!-- Slide 5: Builder Pattern -->
+      <section>
+        <h2>Builder 패턴</h2>
+        <p>복잡한 객체를 단계적으로 생성하되, 타입으로 필수 단계를 강제</p>
+        <pre><code class="language-typescript" data-trim>
+interface QueryConfig {
+  table: string;
+  fields: string[];
+  conditions: string[];
+  orderBy?: string;
+  limit?: number;
+}
+
+class QueryBuilder {
+  private config: Partial&lt;QueryConfig&gt; = {};
+
+  from(table: string): this {
+    this.config.table = table;
+    return this;
+  }
+
+  select(...fields: string[]): this {
+    this.config.fields = fields;
+    return this;
+  }
+
+  where(condition: string): this {
+    if (!this.config.conditions) this.config.conditions = [];
+    this.config.conditions.push(condition);
+    return this;
+  }
+
+  orderBy(field: string): this {
+    this.config.orderBy = field;
+    return this;
+  }
+
+  limit(count: number): this {
+    this.config.limit = count;
+    return this;
+  }
+
+  build(): string {
+    const { table, fields, conditions, orderBy, limit } = this.config;
+    if (!table || !fields?.length) {
+      throw new Error('table과 fields는 필수입니다.');
+    }
+    let sql = `SELECT ${fields.join(', ')} FROM ${table}`;
+    if (conditions?.length) sql += ` WHERE ${conditions.join(' AND ')}`;
+    if (orderBy) sql += ` ORDER BY ${orderBy}`;
+    if (limit) sql += ` LIMIT ${limit}`;
+    return sql;
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+const query = new QueryBuilder()
+  .from('users')
+  .select('id', 'name', 'email')
+  .where('age > 18')
+  .where('active = true')
+  .orderBy('name')
+  .limit(10)
+  .build();
+// SELECT id, name, email FROM users WHERE age > 18 AND active = true ORDER BY name LIMIT 10
+        </code></pre>
+      </section>
+
+      <!-- Slide 6: State Machine with Discriminated Unions -->
+      <section>
+        <h2>상태 머신: Discriminated Union</h2>
+        <p>유한 상태 머신을 타입 시스템으로 모델링</p>
+        <pre><code class="language-typescript" data-trim>
+// 주문 상태를 discriminated union으로 정의
+type OrderState =
+  | { status: 'pending'; createdAt: Date }
+  | { status: 'confirmed'; confirmedAt: Date; estimatedDelivery: Date }
+  | { status: 'shipped'; trackingNumber: string; shippedAt: Date }
+  | { status: 'delivered'; deliveredAt: Date; signature: string }
+  | { status: 'cancelled'; cancelledAt: Date; reason: string };
+
+// 상태 전이 함수 - 유효한 전이만 허용
+function confirmOrder(
+  order: Extract&lt;OrderState, { status: 'pending' }&gt;
+): Extract&lt;OrderState, { status: 'confirmed' }&gt; {
+  return {
+    status: 'confirmed',
+    confirmedAt: new Date(),
+    estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+  };
+}
+
+function cancelOrder(
+  order: Extract&lt;OrderState, { status: 'pending' | 'confirmed' }&gt;,
+  reason: string
+): Extract&lt;OrderState, { status: 'cancelled' }&gt; {
+  return {
+    status: 'cancelled',
+    cancelledAt: new Date(),
+    reason,
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 상태별 렌더링 - 완전한 패턴 매칭
+function renderOrder(order: OrderState): string {
+  switch (order.status) {
+    case 'pending':    return `주문 대기 중 (${order.createdAt})`;
+    case 'confirmed':  return `확정됨. 배송 예정: ${order.estimatedDelivery}`;
+    case 'shipped':    return `배송 중: ${order.trackingNumber}`;
+    case 'delivered':  return `배송 완료. 서명: ${order.signature}`;
+    case 'cancelled':  return `취소됨: ${order.reason}`;
+  } // exhaustive - 빠진 상태가 있으면 컴파일 에러!
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 7: Type-safe Event Emitter -->
+      <section>
+        <h2>타입 안전한 이벤트 이미터</h2>
+        <pre><code class="language-typescript" data-trim>
+// 이벤트 맵 정의
+interface AppEvents {
+  'user:login': { userId: string; timestamp: Date };
+  'user:logout': { userId: string };
+  'post:created': { postId: string; title: string };
+  'error': { code: number; message: string };
+}
+
+// 제네릭 이벤트 이미터
+class TypedEventEmitter&lt;Events extends Record&lt;string, any&gt;&gt; {
+  private listeners = new Map&lt;string, Set&lt;Function&gt;&gt;();
+
+  on&lt;E extends keyof Events&gt;(
+    event: E,
+    listener: (data: Events[E]) => void
+  ): () => void {
+    const key = event as string;
+    if (!this.listeners.has(key)) {
+      this.listeners.set(key, new Set());
+    }
+    this.listeners.get(key)!.add(listener);
+
+    // unsubscribe 함수 반환
+    return () => this.listeners.get(key)?.delete(listener);
+  }
+
+  emit&lt;E extends keyof Events&gt;(event: E, data: Events[E]): void {
+    const key = event as string;
+    this.listeners.get(key)?.forEach(listener => listener(data));
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+const emitter = new TypedEventEmitter&lt;AppEvents&gt;();
+
+// 자동 완성: 이벤트 이름과 데이터 타입이 연결됨
+emitter.on('user:login', (data) => {
+  console.log(data.userId);    // OK: string
+  console.log(data.timestamp); // OK: Date
+  // console.log(data.name);   // 컴파일 에러!
+});
+
+emitter.emit('post:created', {
+  postId: '123',
+  title: '새 글',
+  // content: '...'  // 컴파일 에러! AppEvents에 없는 필드
+});
+        </code></pre>
+      </section>
+
+      <!-- Slide 8: Repository Pattern -->
+      <section>
+        <h2>Repository 패턴</h2>
+        <p>데이터 접근 계층을 추상화하는 제네릭 패턴</p>
+        <pre><code class="language-typescript" data-trim>
+// 기본 엔티티
+interface BaseEntity {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 제네릭 Repository 인터페이스
+interface Repository&lt;T extends BaseEntity&gt; {
+  findById(id: string): Promise&lt;T | null&gt;;
+  findAll(filter?: Partial&lt;T&gt;): Promise&lt;T[]&gt;;
+  create(data: Omit&lt;T, 'id' | 'createdAt' | 'updatedAt'&gt;): Promise&lt;T&gt;;
+  update(id: string, data: Partial&lt;Omit&lt;T, 'id'&gt;&gt;): Promise&lt;T&gt;;
+  delete(id: string): Promise&lt;boolean&gt;;
+  count(filter?: Partial&lt;T&gt;): Promise&lt;number&gt;;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 구체적 엔티티
+interface User extends BaseEntity {
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+}
+
+// 구현
+class UserRepository implements Repository&lt;User&gt; {
+  async create(data: Omit&lt;User, 'id' | 'createdAt' | 'updatedAt'&gt;) {
+    // data는 { name: string; email: string; role: 'admin' | 'user' } 타입
+    const user: User = {
+      id: crypto.randomUUID(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...data,
+    };
+    // DB에 저장하는 로직...
+    return user;
+  }
+  // ... 나머지 메서드 구현
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 9: Result Type (Either Pattern) -->
+      <section>
+        <h2>Result 타입 (Either 패턴)</h2>
+        <p>예외 대신 <strong>타입으로</strong> 성공/실패를 표현하는 패턴</p>
+        <pre><code class="language-typescript" data-trim>
+// Result 타입 정의
+type Result&lt;T, E = Error&gt; =
+  | { ok: true; value: T }
+  | { ok: false; error: E };
+
+// 유틸리티 함수
+function Ok&lt;T&gt;(value: T): Result&lt;T, never&gt; {
+  return { ok: true, value };
+}
+
+function Err&lt;E&gt;(error: E): Result&lt;never, E&gt; {
+  return { ok: false, error };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 에러 타입 정의
+type ValidationError = { field: string; message: string };
+type NotFoundError = { entity: string; id: string };
+type UserError = ValidationError | NotFoundError;
+
+function parseAge(input: string): Result&lt;number, ValidationError&gt; {
+  const age = parseInt(input, 10);
+  if (isNaN(age)) {
+    return Err({ field: 'age', message: '숫자가 아닙니다' });
+  }
+  if (age < 0 || age > 150) {
+    return Err({ field: 'age', message: '유효한 나이가 아닙니다' });
+  }
+  return Ok(age);
+}
+
+// 사용
+const result = parseAge('25');
+if (result.ok) {
+  console.log(result.value);  // number - 안전하게 접근
+} else {
+  console.log(result.error.message); // string - 에러 정보
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 10: Result Type - Chaining -->
+      <section>
+        <h2>Result 타입 - 체이닝</h2>
+        <pre><code class="language-typescript" data-trim>
+// Result에 map, flatMap 추가
+class ResultHelper {
+  static map&lt;T, U, E&gt;(
+    result: Result&lt;T, E&gt;,
+    fn: (value: T) => U
+  ): Result&lt;U, E&gt; {
+    if (result.ok) return Ok(fn(result.value));
+    return result;
+  }
+
+  static flatMap&lt;T, U, E&gt;(
+    result: Result&lt;T, E&gt;,
+    fn: (value: T) => Result&lt;U, E&gt;
+  ): Result&lt;U, E&gt; {
+    if (result.ok) return fn(result.value);
+    return result;
+  }
+
+  static unwrapOr&lt;T, E&gt;(result: Result&lt;T, E&gt;, defaultValue: T): T {
+    return result.ok ? result.value : defaultValue;
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 실전 사용: 검증 체이닝
+function validateUser(input: unknown): Result&lt;User, ValidationError&gt; {
+  const nameResult = validateName(input);
+  const emailResult = ResultHelper.flatMap(
+    nameResult,
+    (name) => validateEmail(input).ok
+      ? Ok({ ...input, name } as User)
+      : validateEmail(input)
+  );
+  return emailResult;
+}
+
+// 에러가 throw되지 않음 - 컴파일러가 모든 경로를 강제
+const userResult = validateUser(rawInput);
+const userName = ResultHelper.unwrapOr(
+  ResultHelper.map(userResult, u => u.name),
+  '알 수 없는 사용자'
+);
+        </code></pre>
+      </section>
+
+      <!-- Slide 11: Branding / Opaque Types -->
+      <section>
+        <h2>Branding / Opaque 타입</h2>
+        <p>같은 원시 타입이지만 <strong>의미적으로 구분</strong>되어야 하는 값을 타입으로 보호</p>
+        <pre><code class="language-typescript" data-trim>
+// Brand 유틸리티 타입
+type Brand&lt;T, B&gt; = T & { readonly __brand: B };
+
+// 도메인 타입 정의
+type UserId = Brand&lt;string, 'UserId'&gt;;
+type PostId = Brand&lt;string, 'PostId'&gt;;
+type Email = Brand&lt;string, 'Email'&gt;;
+type KRW = Brand&lt;number, 'KRW'&gt;;
+type USD = Brand&lt;number, 'USD'&gt;;
+
+// 생성 함수 (검증 포함)
+function createUserId(id: string): UserId {
+  if (!id.startsWith('user_')) throw new Error('Invalid user ID');
+  return id as UserId;
+}
+
+function createEmail(email: string): Email {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('Invalid email');
+  }
+  return email as Email;
+}
+
+function createKRW(amount: number): KRW {
+  return Math.round(amount) as KRW;  // 원화는 정수
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 타입 시스템이 혼용을 방지!
+function getUser(id: UserId): Promise&lt;User&gt; { /* ... */ }
+function getPost(id: PostId): Promise&lt;Post&gt; { /* ... */ }
+
+const userId = createUserId('user_abc');
+const postId = 'post_123' as PostId;
+
+getUser(userId);   // OK
+getUser(postId);   // 컴파일 에러! PostId는 UserId가 아님
+getUser('abc');    // 컴파일 에러! string은 UserId가 아님
+
+// 통화 혼용 방지
+function payInKRW(amount: KRW): void { /* ... */ }
+const priceKRW = createKRW(50000);
+const priceUSD = 35.99 as USD;
+payInKRW(priceKRW);  // OK
+payInKRW(priceUSD);  // 컴파일 에러! USD는 KRW가 아님
+        </code></pre>
+      </section>
+
+      <!-- Slide 12: Type-safe State Management -->
+      <section>
+        <h2>타입 안전한 상태 관리</h2>
+        <p>Redux 스타일의 타입 안전한 액션/리듀서 패턴</p>
+        <pre><code class="language-typescript" data-trim>
+// 액션 타입 정의
+type Action =
+  | { type: 'SET_USER'; payload: User }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'ADD_TODO'; payload: { text: string } }
+  | { type: 'TOGGLE_TODO'; payload: { id: number } }
+  | { type: 'REMOVE_TODO'; payload: { id: number } };
+
+// 상태 타입
+interface AppState {
+  user: User | null;
+  loading: boolean;
+  todos: Array&lt;{ id: number; text: string; done: boolean }&gt;;
+}
+
+const initialState: AppState = {
+  user: null,
+  loading: false,
+  todos: [],
+};
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 리듀서 - 모든 액션의 payload 타입이 자동 추론
+function reducer(state: AppState, action: Action): AppState {
+  switch (action.type) {
+    case 'SET_USER':
+      return { ...state, user: action.payload };
+      //                       ^? User (자동 추론)
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+      //                          ^? boolean
+    case 'ADD_TODO':
+      return {
+        ...state,
+        todos: [...state.todos, {
+          id: Date.now(),
+          text: action.payload.text,  // ^? { text: string }
+          done: false,
+        }],
+      };
+    case 'TOGGLE_TODO':
+      return {
+        ...state,
+        todos: state.todos.map(t =>
+          t.id === action.payload.id ? { ...t, done: !t.done } : t
+        ),
+      };
+    case 'REMOVE_TODO':
+      return {
+        ...state,
+        todos: state.todos.filter(t => t.id !== action.payload.id),
+      };
+  }
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 13: Action Creator Helper -->
+      <section>
+        <h2>액션 크리에이터 헬퍼</h2>
+        <pre><code class="language-typescript" data-trim>
+// 타입 안전한 액션 크리에이터 생성기
+function createAction&lt;T extends Action['type']&gt;(type: T) {
+  return (
+    payload: Extract&lt;Action, { type: T }&gt;['payload']
+  ): Extract&lt;Action, { type: T }&gt; => {
+    return { type, payload } as Extract&lt;Action, { type: T }&gt;;
+  };
+}
+
+// 액션 크리에이터 정의
+const setUser = createAction('SET_USER');
+const setLoading = createAction('SET_LOADING');
+const addTodo = createAction('ADD_TODO');
+const toggleTodo = createAction('TOGGLE_TODO');
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 사용 - payload 타입이 자동으로 검증됨!
+const action1 = setUser({ id: '1', name: '홍길동', email: 'a@b.com' });
+const action2 = setLoading(true);
+const action3 = addTodo({ text: 'TypeScript 공부' });
+const action4 = toggleTodo({ id: 1 });
+
+// 타입 에러!
+setLoading('true');       // boolean이어야 함
+addTodo({ title: '...' }); // text 필드가 필요
+toggleTodo({ id: '1' });  // number이어야 함
+        </code></pre>
+        <div class="tip fragment">
+          <strong>실무:</strong> 이 패턴은 Zustand, Redux Toolkit의 <code>createSlice</code>에서 내부적으로 사용되는 원리와 동일합니다.
+        </div>
+      </section>
+
+      <!-- Slide 14: Working with Third-party Libraries -->
+      <section>
+        <h2>서드파티 라이브러리 활용</h2>
+        <div class="two-columns">
+          <div>
+            <h3>타입 있는 라이브러리</h3>
+            <pre><code class="language-typescript" data-trim>
+// 자체 타입 포함
+import axios from 'axios';
+// package.json에
+// "types": "./index.d.ts"
+
+// 별도 @types 필요
+import express from 'express';
+// npm i -D @types/express
+            </code></pre>
+          </div>
+          <div>
+            <h3>타입 없는 라이브러리</h3>
+            <pre><code class="language-typescript" data-trim>
+// 방법 1: declare module
+declare module 'old-lib' {
+  export function doStuff(
+    input: string
+  ): number;
+}
+
+// 방법 2: 임시 any 처리
+declare module 'untyped-lib';
+// 모든 import가 any
+            </code></pre>
+          </div>
+        </div>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 방법 3: 래퍼를 만들어 타입 안전성 확보
+// wrappers/old-lib.ts
+import oldLib from 'old-lib'; // any
+
+interface OldLibApi {
+  process(data: string[]): Promise&lt;ProcessResult&gt;;
+  configure(options: OldLibOptions): void;
+}
+
+export function createOldLib(): OldLibApi {
+  return {
+    process: (data) => oldLib.process(data),
+    configure: (options) => oldLib.configure(options),
+  };
+}
+// 이제 앱 코드에서는 타입이 보장되는 래퍼만 사용
+        </code></pre>
+        <div class="warning fragment">
+          <strong>원칙:</strong> <code>any</code>는 경계(boundary)에만 두고, 내부 코드는 항상 타입 안전하게 유지하세요.
+        </div>
+      </section>
+
+      <!-- Slide 15: Migration from JavaScript -->
+      <section>
+        <h2>JavaScript에서 마이그레이션</h2>
+        <p>점진적으로 TypeScript를 도입하는 실전 전략</p>
+        <div class="fragment">
+          <h3>단계별 마이그레이션</h3>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>단계</th>
+                <th>작업</th>
+                <th>설정</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-green">1단계</span></td>
+                <td>tsconfig 추가, allowJs 활성화</td>
+                <td><code>"allowJs": true, "strict": false</code></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-blue">2단계</span></td>
+                <td>.js를 .ts로 리네이밍 (에러 무시)</td>
+                <td><code>// @ts-ignore</code> 또는 <code>// @ts-expect-error</code></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-orange">3단계</span></td>
+                <td>핵심 모듈부터 타입 추가</td>
+                <td>shared types, API 계층 우선</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-red">4단계</span></td>
+                <td>strict 모드 점진적 활성화</td>
+                <td><code>"strict": true</code>, 옵션 하나씩</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="fragment"><code class="language-json" data-trim>
+// 1단계 tsconfig.json
+{
+  "compilerOptions": {
+    "allowJs": true,              // JS 파일 허용
+    "checkJs": false,             // JS 파일 타입 체크 안 함
+    "strict": false,              // 느슨하게 시작
+    "noImplicitAny": false,       // any 허용
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"]
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>팁:</strong> <code>// @ts-expect-error</code>로 임시 무시한 곳은 TODO 주석과 함께 기록하세요. 나중에 검색하여 점진적으로 수정합니다.
+        </div>
+      </section>
+
+      <!-- Slide 16: Performance Considerations -->
+      <section>
+        <h2>성능 고려사항</h2>
+        <div class="fragment">
+          <h3>컴파일 성능 최적화</h3>
+          <pre><code class="language-json" data-trim>
+// tsconfig.json - 빌드 속도 향상
+{
+  "compilerOptions": {
+    "incremental": true,            // 증분 컴파일
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "skipLibCheck": true,           // .d.ts 체크 건너뛰기
+    "isolatedModules": true         // 파일 단위 컴파일 가능
+  }
+}
+          </code></pre>
+        </div>
+        <div class="fragment">
+          <h3>런타임 성능에 영향을 주는 패턴</h3>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>패턴</th>
+                <th>비용</th>
+                <th>대안</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>enum</code> (숫자/문자열)</td>
+                <td>런타임 코드 생성</td>
+                <td><code>as const</code> 객체 또는 union 타입</td>
+              </tr>
+              <tr>
+                <td><code>namespace</code></td>
+                <td>IIFE 래퍼 생성</td>
+                <td>ES Modules</td>
+              </tr>
+              <tr>
+                <td>과도한 <code>class</code></td>
+                <td>prototype 체인 오버헤드</td>
+                <td>인터페이스 + 함수</td>
+              </tr>
+              <tr>
+                <td>데코레이터 메타데이터</td>
+                <td>reflect-metadata 런타임</td>
+                <td>필요할 때만 사용</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tip fragment">
+          <strong>핵심:</strong> TypeScript의 타입은 컴파일 후 완전히 제거됩니다. <code>interface</code>, <code>type</code>, <code>type assertion</code>은 런타임 비용이 0입니다.
+        </div>
+      </section>
+
+      <!-- Slide 17: Zero-cost Abstraction Example -->
+      <section>
+        <h2>제로 비용 추상화</h2>
+        <pre><code class="language-typescript" data-trim>
+// 이 모든 타입 코드는 컴파일 후 사라집니다!
+// 런타임 비용: 0
+interface Config {
+  apiUrl: string;
+  timeout: number;
+  retries: number;
+}
+
+type ReadonlyConfig = Readonly&lt;Config&gt;;
+type PartialConfig = Partial&lt;Config&gt;;
+type ConfigKeys = keyof Config;
+
+function processConfig&lt;T extends Config&gt;(config: T): T {
+  return config; // 컴파일 후: function processConfig(config) { return config; }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 반면, 이것들은 런타임 코드를 생성합니다
+// enum -> 런타임 객체 생성
+enum Direction { Up, Down, Left, Right }
+
+// 대안: as const (런타임 비용 최소)
+const Direction2 = {
+  Up: 'UP',
+  Down: 'DOWN',
+  Left: 'LEFT',
+  Right: 'RIGHT',
+} as const;
+
+type Direction2 = typeof Direction2[keyof typeof Direction2];
+// 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>원칙</h3>
+          <p><code>interface</code>와 <code>type</code>을 최대한 활용하세요. 타입 시스템이 강력할수록, 런타임 검증 코드는 줄어듭니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 18: Final Course Summary -->
+      <section>
+        <h2>TypeScript 완전 정복 - 전체 과정 요약</h2>
+        <div class="two-columns" style="font-size: 0.85em;">
+          <div>
+            <div class="key-point">
+              <h3>기초 (Ch 1-4)</h3>
+              <ul>
+                <li class="fragment"><strong>Ch 1</strong> - 타입 시스템, 왜 TypeScript인가</li>
+                <li class="fragment"><strong>Ch 2</strong> - 기본 타입, 유니온, 인터섹션</li>
+                <li class="fragment"><strong>Ch 3</strong> - 함수 타입, 오버로딩</li>
+                <li class="fragment"><strong>Ch 4</strong> - 인터페이스, 클래스, 접근 제어</li>
+              </ul>
+            </div>
+            <div class="key-point">
+              <h3>중급 (Ch 5-8)</h3>
+              <ul>
+                <li class="fragment"><strong>Ch 5</strong> - 제네릭, 제약 조건</li>
+                <li class="fragment"><strong>Ch 6</strong> - 타입 가드, 타입 좁히기</li>
+                <li class="fragment"><strong>Ch 7</strong> - 유틸리티 타입, 매핑 타입</li>
+                <li class="fragment"><strong>Ch 8</strong> - 조건부 타입, Template Literal</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="key-point">
+              <h3>고급 (Ch 9-12)</h3>
+              <ul>
+                <li class="fragment"><strong>Ch 9</strong> - 모듈, 네임스페이스, .d.ts</li>
+                <li class="fragment"><strong>Ch 10</strong> - 데코레이터, 메타프로그래밍</li>
+                <li class="fragment"><strong>Ch 11</strong> - 비동기, Promise&lt;T&gt;, 에러 처리</li>
+                <li class="fragment"><strong>Ch 12</strong> - 실전 패턴, 프로덕션 설계</li>
+              </ul>
+            </div>
+            <br>
+            <div class="tip fragment">
+              <strong>마무리 조언:</strong><br>
+              1. <code>strict: true</code>를 항상 사용하세요<br>
+              2. <code>any</code>를 피하고, <code>unknown</code>을 사용하세요<br>
+              3. 타입을 먼저 설계하고, 구현을 시작하세요<br>
+              4. 컴파일러를 동료로 대하세요
+            </div>
+          </div>
+        </div>
+        <br>
+        <p class="fragment" style="text-align: center; font-size: 1.2em;">
+          <a href="index.html" style="color: var(--ts-blue);">
+            &larr; 전체 목차로 돌아가기
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

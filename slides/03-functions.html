@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 3: 함수 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section class="chapter-title" data-transition="zoom">
+        <span class="chapter-number">Chapter 03</span>
+        <h1>함수</h1>
+        <p class="subtitle">TypeScript 함수의 타입 시스템 완전 이해</p>
+        <br>
+        <p><a href="../index.html" style="color: #888; font-size: 0.6em;">&#8592; 목차로 돌아가기</a></p>
+      </section>
+
+      <!-- Slide 2: Function Type Annotations -->
+      <section data-transition="slide">
+        <h2>함수 타입 어노테이션</h2>
+        <p>매개변수와 반환 타입을 명시적으로 지정합니다.</p>
+        <pre><code class="language-typescript">// 매개변수 타입 + 반환 타입
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+// 반환 타입 추론 (명시하지 않아도 OK)
+function multiply(a: number, b: number) {
+  return a * b;  // number로 자동 추론
+}
+
+// 문자열을 반환하는 함수
+function greet(name: string): string {
+  return `안녕하세요, ${name}님!`;
+}
+
+// 타입 에러 예시
+add("1", 2);         // Error! string은 number에 할당 불가
+add(1, 2, 3);        // Error! 매개변수 2개만 허용
+greet(42);           // Error! number는 string에 할당 불가</code></pre>
+
+        <div class="fragment tip">
+          <strong>Tip:</strong> 매개변수 타입은 반드시 명시하세요. 반환 타입은 추론에 맡겨도 괜찮습니다.
+        </div>
+      </section>
+
+      <!-- Slide 3: Arrow Functions -->
+      <section data-transition="slide">
+        <h2>화살표 함수와 타입</h2>
+        <pre><code class="language-typescript">// 기본 화살표 함수
+const add = (a: number, b: number): number => {
+  return a + b;
+};
+
+// 한 줄 표현식 (return 생략)
+const double = (n: number): number => n * 2;
+
+// 함수 타입을 변수에 선언
+const greet: (name: string) => string = (name) => {
+  return `Hello, ${name}!`;
+};
+
+// 타입 별칭으로 함수 타입 정의 (권장)
+type MathOperation = (a: number, b: number) => number;
+
+const subtract: MathOperation = (a, b) => a - b;
+const divide: MathOperation = (a, b) => a / b;
+
+// 함수 배열도 가능
+const operations: MathOperation[] = [add, subtract, divide];
+operations.forEach(op => console.log(op(10, 3)));</code></pre>
+      </section>
+
+      <!-- Slide 4: Optional Parameters -->
+      <section data-transition="slide">
+        <h2>선택적 매개변수</h2>
+        <pre><code class="language-typescript">// ? 를 붙이면 선택적 매개변수 (생략 가능)
+function greet(name: string, greeting?: string): string {
+  // greeting의 타입: string | undefined
+  return `${greeting || "안녕하세요"}, ${name}님!`;
+}
+
+greet("홍길동");              // "안녕하세요, 홍길동님!"
+greet("홍길동", "반갑습니다");  // "반갑습니다, 홍길동님!"
+
+// 여러 선택적 매개변수
+function createUser(
+  name: string,
+  age?: number,
+  email?: string
+): void {
+  console.log(name);
+  if (age !== undefined) console.log(`나이: ${age}`);
+  if (email !== undefined) console.log(`이메일: ${email}`);
+}</code></pre>
+
+        <div class="warning">
+          <strong>규칙:</strong> 선택적 매개변수는 반드시 필수 매개변수 <strong>뒤에</strong> 와야 합니다.
+          <code>function bad(x?: number, y: number)</code>는 에러입니다.
+        </div>
+      </section>
+
+      <!-- Slide 5: Default Parameters -->
+      <section data-transition="slide">
+        <h2>기본값 매개변수</h2>
+        <pre><code class="language-typescript">// 기본값이 있으면 타입을 추론하고, 생략 가능
+function greet(name: string, greeting: string = "안녕하세요"): string {
+  return `${greeting}, ${name}님!`;
+}
+
+greet("홍길동");              // "안녕하세요, 홍길동님!"
+greet("홍길동", "환영합니다"); // "환영합니다, 홍길동님!"
+
+// 기본값에서 타입 추론
+function createConfig(
+  port: number = 3000,
+  host: string = "localhost",
+  debug: boolean = false
+) {
+  return { port, host, debug };
+}
+
+// 기본값은 중간에도 올 수 있음 (undefined로 건너뛰기)
+function format(
+  value: number,
+  prefix: string = "$",
+  suffix: string = ""
+): string {
+  return `${prefix}${value}${suffix}`;
+}
+
+format(100);                   // "$100"
+format(100, undefined, "원");  // "$100원"
+format(100, "\\", "");          // "\\100"</code></pre>
+      </section>
+
+      <!-- Slide 6: Rest Parameters -->
+      <section data-transition="slide">
+        <h2>나머지 매개변수 (Rest Parameters)</h2>
+        <pre><code class="language-typescript">// ...args로 가변 인수 받기
+function sum(...numbers: number[]): number {
+  return numbers.reduce((total, n) => total + n, 0);
+}
+
+sum(1, 2, 3);           // 6
+sum(1, 2, 3, 4, 5);     // 15
+sum();                   // 0
+
+// 일반 매개변수 + 나머지 매개변수
+function log(level: string, ...messages: string[]): void {
+  console.log(`[${level}]`, ...messages);
+}
+
+log("INFO", "서버 시작", "포트: 3000");
+log("ERROR", "연결 실패");
+
+// 튜플과 함께 사용
+function createUser(
+  name: string,
+  ...info: [age: number, email: string]
+): void {
+  const [age, email] = info;
+  console.log(`${name}, ${age}, ${email}`);
+}
+
+createUser("Kim", 25, "kim@example.com");</code></pre>
+      </section>
+
+      <!-- Slide 7: Function Overloads -->
+      <section data-transition="slide">
+        <h2>함수 오버로드</h2>
+        <p>같은 함수명으로 다른 매개변수 타입에 따라 다른 반환 타입을 제공</p>
+        <pre><code class="language-typescript">// 오버로드 시그니처 (선언부)
+function createElement(tag: "a"): HTMLAnchorElement;
+function createElement(tag: "canvas"): HTMLCanvasElement;
+function createElement(tag: "input"): HTMLInputElement;
+function createElement(tag: string): HTMLElement;
+
+// 구현부 (실제 로직)
+function createElement(tag: string): HTMLElement {
+  return document.createElement(tag);
+}
+
+// 호출 시 반환 타입이 정확하게 추론
+const link = createElement("a");       // HTMLAnchorElement
+const canvas = createElement("canvas"); // HTMLCanvasElement
+const div = createElement("div");       // HTMLElement
+
+link.href = "https://example.com";  // OK (HTMLAnchorElement)
+canvas.getContext("2d");             // OK (HTMLCanvasElement)</code></pre>
+      </section>
+
+      <!-- Slide 8: Overload practical example -->
+      <section data-transition="slide">
+        <h2>함수 오버로드 실전 예제</h2>
+        <pre><code class="language-typescript">// 입력 타입에 따라 반환 타입이 달라지는 경우
+function parseValue(value: string): number;
+function parseValue(value: string[]): number[];
+function parseValue(value: string | string[]): number | number[] {
+  if (Array.isArray(value)) {
+    return value.map(v => parseInt(v, 10));
+  }
+  return parseInt(value, 10);
+}
+
+const single = parseValue("42");          // number
+const multiple = parseValue(["1", "2"]);  // number[]
+
+// 매개변수 개수가 다른 오버로드
+function formatDate(timestamp: number): string;
+function formatDate(year: number, month: number, day: number): string;
+function formatDate(yearOrTimestamp: number, month?: number, day?: number): string {
+  if (month !== undefined && day !== undefined) {
+    return `${yearOrTimestamp}-${month}-${day}`;
+  }
+  return new Date(yearOrTimestamp).toISOString();
+}
+
+formatDate(1700000000000);    // "2023-11-14T..."
+formatDate(2024, 1, 15);     // "2024-1-15"</code></pre>
+      </section>
+
+      <!-- Slide 9: void vs undefined -->
+      <section data-transition="slide">
+        <h2>void vs undefined 반환</h2>
+        <div class="two-columns">
+          <div>
+            <h3 style="font-size: 1em; color: var(--ts-blue);">void</h3>
+            <pre><code class="language-typescript">// void: "반환값을 사용하지 않겠다"
+function logMessage(msg: string): void {
+  console.log(msg);
+}
+
+// 콜백에서의 void는 특별함
+type Callback = () => void;
+
+// 반환값이 있어도 무시됨!
+const cb: Callback = () => {
+  return 42; // OK! void 콜백
+};
+
+// void 콜백의 반환값은 무시
+const result: void = cb();
+// result를 사용할 수 없음</code></pre>
+          </div>
+          <div>
+            <h3 style="font-size: 1em; color: var(--ts-green);">undefined</h3>
+            <pre><code class="language-typescript">// undefined: 정확히 undefined를 반환
+function nothing(): undefined {
+  return undefined; // 반드시 명시
+}
+
+// return 없으면 에러
+function bad(): undefined {
+  // Error! 반환문이 필요
+}
+
+// 실제 차이점 예시
+const arr = [1, 2, 3];
+
+// forEach 콜백은 void 반환
+arr.forEach((n): void => {
+  console.log(n);
+  // return 있어도 OK
+});
+
+// map에서는 반환 타입이 중요
+arr.map((n): number => {
+  return n * 2;
+});</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 10: Callback Types -->
+      <section data-transition="slide">
+        <h2>콜백 함수 타입</h2>
+        <pre><code class="language-typescript">// 콜백 타입 정의
+type SuccessCallback = (data: string) => void;
+type ErrorCallback = (error: Error) => void;
+
+function fetchData(
+  url: string,
+  onSuccess: SuccessCallback,
+  onError: ErrorCallback
+): void {
+  try {
+    // ... 데이터 가져오기
+    onSuccess("데이터 로드 완료!");
+  } catch (e) {
+    onError(e as Error);
+  }
+}
+
+// 사용 예시
+fetchData(
+  "/api/users",
+  (data) => console.log(data),      // data: string
+  (error) => console.error(error)    // error: Error
+);
+
+// 이벤트 핸들러 타입
+type EventHandler = (event: { type: string; target: HTMLElement }) => void;
+
+const handleClick: EventHandler = (event) => {
+  console.log(`${event.type} on ${event.target.tagName}`);
+};</code></pre>
+      </section>
+
+      <!-- Slide 11: Higher Order Functions -->
+      <section data-transition="slide">
+        <h2>고차 함수 타입</h2>
+        <p>함수를 매개변수로 받거나 반환하는 함수</p>
+        <pre><code class="language-typescript">// 함수를 반환하는 함수
+function createMultiplier(factor: number): (n: number) => number {
+  return (n: number) => n * factor;
+}
+
+const double = createMultiplier(2);
+const triple = createMultiplier(3);
+
+double(5);  // 10
+triple(5);  // 15
+
+// 함수를 매개변수로 받는 함수
+function applyToArray&lt;T, U&gt;(
+  arr: T[],
+  fn: (item: T, index: number) => U
+): U[] {
+  return arr.map(fn);
+}
+
+const numbers = [1, 2, 3, 4];
+const strings = applyToArray(numbers, (n) => n.toString());
+// strings: string[] = ["1", "2", "3", "4"]
+
+const doubled = applyToArray(numbers, (n) => n * 2);
+// doubled: number[] = [2, 4, 6, 8]</code></pre>
+      </section>
+
+      <!-- Slide 12: Generic Functions Intro -->
+      <section data-transition="slide">
+        <h2>제네릭 함수 입문</h2>
+        <div class="key-point">
+          <h3>핵심 개념</h3>
+          <p>제네릭은 <strong>타입을 매개변수로</strong> 받아, 다양한 타입에서 재사용 가능한 함수를 만듭니다.</p>
+        </div>
+        <pre><code class="language-typescript">// 문제: 모든 타입에 대해 동일한 로직을 반복해야 함
+function firstString(arr: string[]): string | undefined {
+  return arr[0];
+}
+function firstNumber(arr: number[]): number | undefined {
+  return arr[0];
+}
+
+// 해결: 제네릭으로 한 번만 작성
+function first&lt;T&gt;(arr: T[]): T | undefined {
+  return arr[0];
+}
+
+// 타입이 자동 추론됨
+const a = first(["hello", "world"]);  // string | undefined
+const b = first([1, 2, 3]);           // number | undefined
+
+// 명시적으로 타입 지정도 가능
+const c = first&lt;boolean&gt;([true, false]); // boolean | undefined</code></pre>
+      </section>
+
+      <!-- Slide 13: More Generic Examples -->
+      <section data-transition="slide">
+        <h2>제네릭 함수 활용</h2>
+        <pre><code class="language-typescript">// 여러 타입 매개변수
+function pair&lt;A, B&gt;(first: A, second: B): [A, B] {
+  return [first, second];
+}
+
+const p = pair("hello", 42);  // [string, number]
+
+// 제네릭 + 제약 조건
+function getProperty&lt;T, K extends keyof T&gt;(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+const user = { name: "Kim", age: 25 };
+const name = getProperty(user, "name");  // string
+const age = getProperty(user, "age");    // number
+// getProperty(user, "email");  // Error! "email"은 keyof User가 아님
+
+// 제네릭 유틸리티 함수
+function toArray&lt;T&gt;(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value];
+}
+
+toArray("hello");          // string[]
+toArray([1, 2, 3]);        // number[]</code></pre>
+      </section>
+
+      <!-- Slide 14: Common Patterns -->
+      <section data-transition="slide">
+        <h2>함수 타입 실전 패턴</h2>
+        <pre><code class="language-typescript">// 패턴 1: 옵션 객체 매개변수
+interface FetchOptions {
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  headers?: Record&lt;string, string&gt;;
+  body?: string;
+  timeout?: number;
+}
+
+function fetchAPI(url: string, options: FetchOptions = {}): Promise&lt;Response&gt; {
+  const { method = "GET", timeout = 5000 } = options;
+  return fetch(url, { ...options, method });
+}
+
+// 패턴 2: 빌더 패턴의 체이닝
+function createQueryBuilder() {
+  let query = "";
+  return {
+    select(fields: string[]) { query += `SELECT ${fields.join(", ")} `; return this; },
+    from(table: string) { query += `FROM ${table} `; return this; },
+    where(condition: string) { query += `WHERE ${condition} `; return this; },
+    build(): string { return query.trim(); }
+  };
+}
+
+const sql = createQueryBuilder()
+  .select(["name", "age"])
+  .from("users")
+  .where("age > 18")
+  .build();</code></pre>
+      </section>
+
+      <!-- Slide 15: Summary -->
+      <section data-transition="slide">
+        <h2>Chapter 3 정리</h2>
+        <table class="compare-table" style="font-size: 0.75em;">
+          <thead>
+            <tr>
+              <th>개념</th>
+              <th>문법</th>
+              <th>설명</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>타입 어노테이션</td><td><code>(a: number): string</code></td><td>매개변수 + 반환 타입 명시</td></tr>
+            <tr><td>화살표 함수</td><td><code>(n: number) => n * 2</code></td><td>간결한 함수 표현식</td></tr>
+            <tr><td>선택적 매개변수</td><td><code>name?: string</code></td><td>생략 가능 (| undefined)</td></tr>
+            <tr><td>기본값</td><td><code>port = 3000</code></td><td>생략 시 기본값 사용</td></tr>
+            <tr><td>나머지 매개변수</td><td><code>...args: number[]</code></td><td>가변 인수</td></tr>
+            <tr><td>오버로드</td><td>여러 시그니처 선언</td><td>입력에 따라 반환 타입 변경</td></tr>
+            <tr><td>void</td><td><code>(): void</code></td><td>반환값 사용하지 않음</td></tr>
+            <tr><td>콜백 타입</td><td><code>type Fn = (x: T) => R</code></td><td>함수 타입 별칭</td></tr>
+            <tr><td>제네릭</td><td><code>&lt;T&gt;(arr: T[]): T</code></td><td>타입을 매개변수로</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Slide 16: Next Chapter -->
+      <section class="chapter-title" data-transition="zoom">
+        <span class="chapter-number">Next</span>
+        <h1>수고하셨습니다!</h1>
+        <br>
+        <p>
+          <a href="04-interfaces.html" style="color: var(--ts-blue); font-size: 1.2em;">
+            다음 챕터: 인터페이스 &amp; 타입 별칭 &#8594;
+          </a>
+        </p>
+        <br>
+        <p><a href="../index.html" style="color: #888; font-size: 0.7em;">&#8592; 목차로 돌아가기</a></p>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <a href="../index.html" style="color: #888;">TypeScript 완전 정복</a> | Chapter 03
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

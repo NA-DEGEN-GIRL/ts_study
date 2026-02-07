@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.js
+!reveal.js
+.DS_Store

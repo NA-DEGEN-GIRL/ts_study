@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Chapter 9: 모듈 & 네임스페이스 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section>
+        <div class="chapter-title">
+          <div class="chapter-number">Chapter 9</div>
+          <h1>모듈 & 네임스페이스</h1>
+          <p class="subtitle">코드를 체계적으로 구성하는 방법</p>
+          <br>
+          <p>
+            <span class="badge badge-blue">ES Modules</span>
+            <span class="badge badge-green">import/export</span>
+            <span class="badge badge-orange">Namespace</span>
+            <span class="badge badge-red">.d.ts</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 2: ES Modules 기초 -->
+      <section>
+        <h2>ES Modules 기초</h2>
+        <p>TypeScript는 ES Modules(ESM) 표준을 기반으로 모듈 시스템을 지원합니다.</p>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// math.ts - 파일 하나가 곧 하나의 모듈
+export function add(a: number, b: number): number {
+  return a + b;
+}
+
+export function multiply(a: number, b: number): number {
+  return a * b;
+}
+
+export const PI = 3.14159;
+          </code></pre>
+        </div>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// app.ts - 다른 모듈에서 가져오기
+import { add, multiply, PI } from './math';
+
+console.log(add(2, 3));       // 5
+console.log(multiply(4, PI)); // 12.56636
+          </code></pre>
+        </div>
+        <div class="key-point fragment">
+          <h3>핵심</h3>
+          <p><code>export</code> 또는 <code>import</code>가 있는 파일은 자동으로 <strong>모듈</strong>로 취급됩니다. 없으면 전역 스크립트입니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 3: Named Exports vs Default Exports -->
+      <section>
+        <h2>Named vs Default Exports</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Named Export</h3>
+            <pre><code class="language-typescript" data-trim>
+// user.ts
+export interface User {
+  id: number;
+  name: string;
+}
+
+export function createUser(
+  name: string
+): User {
+  return { id: Date.now(), name };
+}
+
+// 가져올 때
+import { User, createUser }
+  from './user';
+            </code></pre>
+            <p class="fragment"><span class="badge badge-green">여러 개 내보내기 가능</span></p>
+          </div>
+          <div>
+            <h3>Default Export</h3>
+            <pre><code class="language-typescript" data-trim>
+// logger.ts
+export default class Logger {
+  private prefix: string;
+
+  constructor(prefix: string) {
+    this.prefix = prefix;
+  }
+
+  log(msg: string): void {
+    console.log(
+      `[${this.prefix}] ${msg}`
+    );
+  }
+}
+
+// 가져올 때 (이름 자유)
+import Logger from './logger';
+import MyLog from './logger'; // OK
+            </code></pre>
+            <p class="fragment"><span class="badge badge-orange">파일당 1개만 가능</span></p>
+          </div>
+        </div>
+        <div class="tip fragment">
+          <strong>권장:</strong> Named Export를 사용하세요. 리팩토링과 자동 완성에 유리합니다.
+        </div>
+      </section>
+
+      <!-- Slide 4: 다양한 Export 패턴 -->
+      <section>
+        <h2>다양한 Export 패턴</h2>
+        <pre><code class="language-typescript" data-trim>
+// 1. 선언과 동시에 export
+export const MAX_RETRIES = 3;
+export type Status = 'active' | 'inactive';
+
+// 2. 별도로 모아서 export
+const API_URL = 'https://api.example.com';
+const TIMEOUT = 5000;
+export { API_URL, TIMEOUT };
+
+// 3. 이름을 바꿔서 export
+function internalHelper() { /* ... */ }
+export { internalHelper as helper };
+
+// 4. 타입만 내보내기 (런타임에 제거됨)
+export type { User };
+export interface { Config };
+        </code></pre>
+        <div class="fragment">
+          <div class="key-point">
+            <h3>type-only export</h3>
+            <p><code>export type</code>은 컴파일 후 완전히 제거됩니다. 번들 크기 최적화에 효과적!</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 5: Re-exporting -->
+      <section>
+        <h2>Re-exporting (재내보내기)</h2>
+        <p>여러 모듈을 하나의 진입점으로 통합할 수 있습니다.</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// models/user.ts
+export interface User { id: number; name: string; }
+
+// models/post.ts
+export interface Post { id: number; title: string; authorId: number; }
+
+// models/comment.ts
+export interface Comment { id: number; body: string; postId: number; }
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// models/index.ts - 배럴(barrel) 파일
+export { User } from './user';
+export { Post } from './post';
+export { Comment } from './comment';
+
+// 전체 재내보내기
+export * from './user';
+
+// 이름 변경 재내보내기
+export { Post as BlogPost } from './post';
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// app.ts - 깔끔한 import!
+import { User, Post, Comment } from './models';
+        </code></pre>
+        <div class="warning fragment">
+          <strong>주의:</strong> 배럴 파일이 깊게 중첩되면 순환 의존성(circular dependency) 문제가 발생할 수 있습니다.
+        </div>
+      </section>
+
+      <!-- Slide 6: Dynamic Imports -->
+      <section>
+        <h2>Dynamic Imports</h2>
+        <p>런타임에 조건부로 모듈을 로드하는 <code>import()</code> 표현식</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 코드 스플리팅: 필요할 때만 로드
+async function loadChart(type: string) {
+  if (type === 'bar') {
+    const { BarChart } = await import('./charts/bar-chart');
+    return new BarChart();
+  } else {
+    const { LineChart } = await import('./charts/line-chart');
+    return new LineChart();
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// React에서의 활용 - lazy loading
+import React, { lazy, Suspense } from 'react';
+
+const AdminPanel = lazy(() => import('./AdminPanel'));
+
+function App() {
+  return (
+    &lt;Suspense fallback={&lt;div&gt;로딩 중...&lt;/div&gt;}&gt;
+      &lt;AdminPanel /&gt;
+    &lt;/Suspense&gt;
+  );
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>반환 타입:</strong> <code>import()</code>는 <code>Promise&lt;Module&gt;</code>을 반환합니다. TypeScript가 자동으로 타입을 추론합니다.
+        </div>
+      </section>
+
+      <!-- Slide 7: Module Resolution -->
+      <section>
+        <h2>Module Resolution</h2>
+        <p>TypeScript가 <code>import</code> 경로를 실제 파일로 변환하는 전략</p>
+        <div class="fragment">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>전략</th>
+                <th>설정값</th>
+                <th>특징</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Node</strong></td>
+                <td><code>"moduleResolution": "node"</code></td>
+                <td>Node.js 방식. node_modules 탐색. 가장 일반적</td>
+              </tr>
+              <tr>
+                <td><strong>Node16</strong></td>
+                <td><code>"moduleResolution": "node16"</code></td>
+                <td>Node.js ESM 지원. package.json exports 필드 인식</td>
+              </tr>
+              <tr>
+                <td><strong>Bundler</strong></td>
+                <td><code>"moduleResolution": "bundler"</code></td>
+                <td>Vite, webpack 등 번들러용. 가장 유연함</td>
+              </tr>
+              <tr>
+                <td><strong>Classic</strong></td>
+                <td><code>"moduleResolution": "classic"</code></td>
+                <td>레거시. 사용하지 마세요</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// Node resolution 탐색 순서
+import { helper } from './utils';
+// 1. ./utils.ts
+// 2. ./utils.tsx
+// 3. ./utils/index.ts
+// 4. ./utils/index.tsx
+
+import { lodash } from 'lodash';
+// 1. node_modules/lodash/package.json "types" 필드
+// 2. node_modules/lodash/index.d.ts
+// 3. node_modules/@types/lodash/index.d.ts
+        </code></pre>
+      </section>
+
+      <!-- Slide 8: Declaration Files (.d.ts) -->
+      <section>
+        <h2>Declaration Files (.d.ts)</h2>
+        <p>JavaScript 라이브러리에 타입 정보를 제공하는 선언 파일</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// types/math-lib.d.ts
+declare module 'math-lib' {
+  export function sum(numbers: number[]): number;
+  export function average(numbers: number[]): number;
+  export const VERSION: string;
+
+  export interface MathConfig {
+    precision: number;
+    rounding: 'floor' | 'ceil' | 'round';
+  }
+
+  export default function calculate(
+    expr: string,
+    config?: MathConfig
+  ): number;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 이제 타입 안전하게 사용 가능!
+import calculate, { sum, MathConfig } from 'math-lib';
+
+const result = sum([1, 2, 3]); // number
+const config: MathConfig = { precision: 2, rounding: 'round' };
+const value = calculate('2 + 3', config); // number
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>자동 생성</h3>
+          <p><code>tsconfig.json</code>에서 <code>"declaration": true</code>를 설정하면 컴파일 시 <code>.d.ts</code> 파일이 자동 생성됩니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 9: @types 패키지 -->
+      <section>
+        <h2>@types 패키지</h2>
+        <p>DefinitelyTyped - 커뮤니티가 관리하는 타입 선언 저장소</p>
+        <pre class="fragment"><code class="language-bash" data-trim>
+# 타입이 내장되지 않은 라이브러리용 타입 설치
+npm install --save-dev @types/express
+npm install --save-dev @types/lodash
+npm install --save-dev @types/node
+npm install --save-dev @types/react
+        </code></pre>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// @types/express 설치 후 자동으로 타입 인식!
+import express, { Request, Response } from 'express';
+
+const app = express();
+
+app.get('/users/:id', (req: Request, res: Response) => {
+  const userId = req.params.id; // string 타입 자동 추론
+  res.json({ id: userId });
+});
+          </code></pre>
+        </div>
+        <div class="tip fragment">
+          <strong>확인 방법:</strong> 패키지가 자체 타입을 포함하는지 확인하려면 <code>package.json</code>의 <code>"types"</code> 필드를 확인하세요. 없으면 <code>@types/패키지명</code>을 설치합니다.
+        </div>
+      </section>
+
+      <!-- Slide 10: Ambient Modules -->
+      <section>
+        <h2>Ambient Modules (declare module)</h2>
+        <p>비-JS 파일이나 타입이 없는 모듈에 타입을 선언하기</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// global.d.ts - 비-JS 파일용 타입 선언
+
+// CSS Modules
+declare module '*.module.css' {
+  const classes: { [key: string]: string };
+  export default classes;
+}
+
+// 이미지 파일
+declare module '*.png' {
+  const src: string;
+  export default src;
+}
+
+// SVG를 React 컴포넌트로
+declare module '*.svg' {
+  import React from 'react';
+  const SVGComponent: React.FC&lt;React.SVGProps&lt;SVGSVGElement&gt;&gt;;
+  export default SVGComponent;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 타입 없는 라이브러리 임시 처리
+declare module 'untyped-library' {
+  const lib: any;
+  export default lib;
+}
+
+// JSON 파일
+declare module '*.json' {
+  const value: Record&lt;string, unknown&gt;;
+  export default value;
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 11: Namespaces -->
+      <section>
+        <h2>Namespaces</h2>
+        <p>관련된 코드를 논리적으로 그룹화하는 TypeScript 고유 기능</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+namespace Validation {
+  // 외부에 공개
+  export interface Validator {
+    isValid(value: string): boolean;
+  }
+
+  // 외부에 공개
+  export class EmailValidator implements Validator {
+    isValid(email: string): boolean {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+  }
+
+  export class PhoneValidator implements Validator {
+    isValid(phone: string): boolean {
+      return /^\d{3}-\d{4}-\d{4}$/.test(phone);
+    }
+  }
+
+  // 내부에서만 사용 (export 없음)
+  const MAX_LENGTH = 255;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 사용
+const emailValidator = new Validation.EmailValidator();
+console.log(emailValidator.isValid('test@test.com')); // true
+
+const phoneValidator = new Validation.PhoneValidator();
+console.log(phoneValidator.isValid('010-1234-5678')); // true
+        </code></pre>
+      </section>
+
+      <!-- Slide 12: Nested Namespaces -->
+      <section>
+        <h2>중첩 네임스페이스</h2>
+        <pre><code class="language-typescript" data-trim>
+namespace App {
+  export namespace Models {
+    export interface User {
+      id: number;
+      name: string;
+      email: string;
+    }
+
+    export interface Product {
+      id: number;
+      name: string;
+      price: number;
+    }
+  }
+
+  export namespace Services {
+    export class UserService {
+      getUser(id: number): Models.User {
+        return { id, name: '홍길동', email: 'hong@example.com' };
+      }
+    }
+
+    export class ProductService {
+      getProduct(id: number): Models.Product {
+        return { id, name: 'TypeScript 교재', price: 35000 };
+      }
+    }
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+const userService = new App.Services.UserService();
+const user: App.Models.User = userService.getUser(1);
+console.log(user.name); // "홍길동"
+        </code></pre>
+      </section>
+
+      <!-- Slide 13: Namespace vs Module -->
+      <section>
+        <h2>Namespace vs Module 비교</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>Namespace</th>
+              <th>ES Module</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fragment">
+              <td><strong>문법</strong></td>
+              <td><code>namespace Foo { }</code></td>
+              <td><code>import/export</code></td>
+            </tr>
+            <tr class="fragment">
+              <td><strong>파일 관계</strong></td>
+              <td>여러 파일에 걸쳐 동일 NS 가능</td>
+              <td>파일 = 모듈 (1:1)</td>
+            </tr>
+            <tr class="fragment">
+              <td><strong>트리 쉐이킹</strong></td>
+              <td>어렵다</td>
+              <td>번들러가 자동 지원</td>
+            </tr>
+            <tr class="fragment">
+              <td><strong>의존성 관리</strong></td>
+              <td>순서 중요, 암묵적</td>
+              <td>명시적 import</td>
+            </tr>
+            <tr class="fragment">
+              <td><strong>현대 프로젝트</strong></td>
+              <td>거의 사용하지 않음</td>
+              <td>표준, 권장</td>
+            </tr>
+            <tr class="fragment">
+              <td><strong>적합한 경우</strong></td>
+              <td>전역 타입 선언, 레거시</td>
+              <td>모든 신규 프로젝트</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="warning fragment">
+          <strong>공식 권장:</strong> 신규 프로젝트에서는 네임스페이스 대신 ES Modules를 사용하세요.
+        </div>
+      </section>
+
+      <!-- Slide 14: Module Augmentation -->
+      <section>
+        <h2>Module Augmentation (모듈 확장)</h2>
+        <p>기존 모듈의 타입을 확장하는 고급 기법</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// express 모듈의 Request 타입 확장
+import 'express';
+
+declare module 'express' {
+  interface Request {
+    userId?: string;
+    sessionId?: string;
+    role?: 'admin' | 'user';
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 이제 확장된 타입 사용 가능!
+import express, { Request, Response, NextFunction } from 'express';
+
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const token = req.headers.authorization;
+  if (token) {
+    req.userId = 'user_123';     // 에러 없음!
+    req.role = 'admin';          // 에러 없음!
+  }
+  next();
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>활용:</strong> Express, Fastify, Koa 등 미들웨어 기반 프레임워크에서 request 객체를 확장할 때 필수적인 패턴입니다.
+        </div>
+      </section>
+
+      <!-- Slide 15: Summary -->
+      <section>
+        <h2>Chapter 9 요약</h2>
+        <div class="two-columns">
+          <div>
+            <div class="key-point">
+              <h3>핵심 개념</h3>
+              <ul>
+                <li class="fragment"><strong>Named Export</strong> - 여러 값 내보내기, 권장</li>
+                <li class="fragment"><strong>Default Export</strong> - 파일당 하나</li>
+                <li class="fragment"><strong>Re-export</strong> - 배럴 파일로 정리</li>
+                <li class="fragment"><strong>Dynamic Import</strong> - 코드 스플리팅</li>
+                <li class="fragment"><strong>Module Resolution</strong> - bundler 권장</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="key-point">
+              <h3>타입 선언</h3>
+              <ul>
+                <li class="fragment"><strong>.d.ts</strong> - 타입 선언 파일</li>
+                <li class="fragment"><strong>@types</strong> - 커뮤니티 타입</li>
+                <li class="fragment"><strong>declare module</strong> - 직접 선언</li>
+                <li class="fragment"><strong>Module Augmentation</strong> - 타입 확장</li>
+                <li class="fragment"><strong>Namespace</strong> - 레거시, 비권장</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <br>
+        <p class="fragment">
+          <a href="10-decorators.html" style="color: var(--ts-blue);">
+            다음 챕터: Chapter 10 - 데코레이터 & 메타데이터 &rarr;
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

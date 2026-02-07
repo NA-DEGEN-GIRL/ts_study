@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 1: TypeScript 소개 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section class="chapter-title" data-transition="zoom">
+        <span class="chapter-number">Chapter 01</span>
+        <h1>TypeScript 소개</h1>
+        <p class="subtitle">TypeScript란 무엇이며 왜 사용하는가</p>
+        <br>
+        <p><a href="../index.html" style="color: #888; font-size: 0.6em;">&#8592; 목차로 돌아가기</a></p>
+      </section>
+
+      <!-- Slide 2: What is TypeScript -->
+      <section data-transition="slide">
+        <h2>TypeScript란?</h2>
+        <div class="key-point">
+          <h3>핵심 정의</h3>
+          <p>TypeScript는 JavaScript의 <strong>상위 집합(Superset)</strong>으로,<br>
+          <strong>정적 타입 시스템</strong>을 추가한 프로그래밍 언어입니다.</p>
+        </div>
+        <ul>
+          <li class="fragment">Microsoft에서 2012년에 개발</li>
+          <li class="fragment">모든 JavaScript 코드는 유효한 TypeScript 코드</li>
+          <li class="fragment">컴파일 시 순수 JavaScript로 변환</li>
+          <li class="fragment">현재 가장 인기 있는 프로그래밍 언어 중 하나</li>
+        </ul>
+      </section>
+
+      <!-- Slide 3: Superset diagram -->
+      <section data-transition="slide">
+        <h2>JavaScript와의 관계</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 50px; margin: 30px 0;">
+          <!-- 다이어그램 -->
+          <div style="position: relative; width: 360px; height: 360px; flex-shrink: 0;">
+            <!-- 외부 원: TypeScript -->
+            <div style="width: 360px; height: 360px; border-radius: 50%; background: rgba(49, 120, 198, 0.15); border: 3px solid var(--ts-blue); position: absolute; top: 0; left: 0;"></div>
+            <span style="position: absolute; top: 30px; left: 50%; transform: translateX(-50%); font-size: 1.1em; font-weight: 700; color: var(--ts-blue);">TypeScript</span>
+            <!-- 내부 원: JavaScript -->
+            <div style="width: 200px; height: 200px; border-radius: 50%; background: rgba(247, 223, 30, 0.12); border: 3px solid var(--ts-accent); position: absolute; top: 110px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center;">
+              <div style="text-align: center;">
+                <span style="font-weight: 700; color: var(--ts-accent); font-size: 1em;">JavaScript</span><br>
+                <span style="font-size: 0.65em; color: #aaa;">ES6+ 모든 기능</span>
+              </div>
+            </div>
+          </div>
+          <!-- 오른쪽 설명 -->
+          <div style="text-align: left; font-size: 0.85em; color: #ccc; line-height: 2;">
+            <div>TypeScript = JavaScript +</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 타입 시스템</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 인터페이스</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 제네릭</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 열거형</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 데코레이터</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 4: Why TypeScript -->
+      <section data-transition="slide">
+        <h2>왜 TypeScript를 사용하는가?</h2>
+        <div class="two-columns">
+          <div>
+            <h3 style="color: var(--ts-red);">JavaScript의 문제점</h3>
+            <pre><code class="language-javascript">// 런타임에서야 에러 발견
+function add(a, b) {
+  return a + b;
+}
+
+add(1, "2");      // "12" (의도치 않은 결과)
+add(1);           // NaN
+add(1, 2, 3, 4);  // 3 (나머지 무시)
+
+// 오타도 잡아내지 못함
+const user = { name: "Kim" };
+console.log(user.naem); // undefined</code></pre>
+          </div>
+          <div>
+            <h3 style="color: var(--ts-green);">TypeScript의 해결책</h3>
+            <pre><code class="language-typescript">// 컴파일 시점에 에러 감지
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+add(1, "2");      // Error!
+add(1);           // Error!
+add(1, 2, 3, 4);  // Error!
+
+// 오타를 즉시 감지
+const user = { name: "Kim" };
+console.log(user.naem); // Error!</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 5: Benefits -->
+      <section data-transition="slide">
+        <h2>TypeScript의 이점</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="fragment key-point" style="padding: 15px 20px;">
+            <h3 style="font-size: 0.9em;">IDE 지원 강화</h3>
+            <p style="font-size: 0.75em;">자동 완성, 리팩토링, 코드 내비게이션이 정확하게 동작</p>
+          </div>
+          <div class="fragment key-point" style="padding: 15px 20px;">
+            <h3 style="font-size: 0.9em;">버그 조기 발견</h3>
+            <p style="font-size: 0.75em;">런타임 전에 타입 에러, 오타, 잘못된 API 사용을 감지</p>
+          </div>
+          <div class="fragment key-point" style="padding: 15px 20px;">
+            <h3 style="font-size: 0.9em;">살아있는 문서화</h3>
+            <p style="font-size: 0.75em;">타입 정의 자체가 API 문서 역할, 별도 문서 불필요</p>
+          </div>
+          <div class="fragment key-point" style="padding: 15px 20px;">
+            <h3 style="font-size: 0.9em;">안전한 리팩토링</h3>
+            <p style="font-size: 0.75em;">코드 변경 시 영향 범위를 컴파일러가 알려줌</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 6: Who uses TypeScript -->
+      <section data-transition="slide">
+        <h2>TypeScript를 사용하는 프로젝트</h2>
+        <div style="text-align: center;">
+          <p>세계적인 기업과 오픈소스 프로젝트에서 채택</p>
+          <br>
+          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+            <span class="badge badge-blue">Angular</span>
+            <span class="badge badge-blue">React (타입 지원)</span>
+            <span class="badge badge-blue">Vue 3</span>
+            <span class="badge badge-blue">Next.js</span>
+            <span class="badge badge-blue">NestJS</span>
+            <span class="badge badge-blue">Deno</span>
+            <span class="badge badge-blue">VS Code</span>
+            <span class="badge badge-blue">Slack</span>
+            <span class="badge badge-blue">Figma</span>
+            <span class="badge badge-blue">Stripe</span>
+            <span class="badge badge-blue">Airbnb</span>
+            <span class="badge badge-blue">Vercel</span>
+          </div>
+        </div>
+        <br>
+        <div class="tip">
+          <strong>Tip:</strong> 2024 Stack Overflow 설문에서 TypeScript는 가장 사랑받는 언어 Top 5에 선정되었습니다.
+        </div>
+      </section>
+
+      <!-- Slide 7: Installing TypeScript -->
+      <section data-transition="slide">
+        <h2>TypeScript 설치하기</h2>
+        <h3 style="color: var(--ts-green);">전역 설치</h3>
+        <pre><code class="language-bash"># npm으로 전역 설치
+npm install -g typescript
+
+# 설치 확인
+tsc --version   # Version 5.x.x</code></pre>
+
+        <h3 style="color: var(--ts-green); margin-top: 20px;">프로젝트별 설치 (권장)</h3>
+        <pre><code class="language-bash"># 프로젝트 초기화
+mkdir my-ts-project && cd my-ts-project
+npm init -y
+
+# 개발 의존성으로 설치
+npm install --save-dev typescript
+
+# ts-node도 함께 설치 (직접 실행용)
+npm install --save-dev ts-node</code></pre>
+      </section>
+
+      <!-- Slide 8: tsconfig.json -->
+      <section data-transition="slide">
+        <h2>tsconfig.json</h2>
+        <p>TypeScript 프로젝트의 설정 파일</p>
+        <pre><code class="language-json">{
+  "compilerOptions": {
+    "target": "ES2020",          // 컴파일 대상 JS 버전
+    "module": "commonjs",        // 모듈 시스템
+    "strict": true,              // 엄격한 타입 체크
+    "esModuleInterop": true,     // ES 모듈 호환성
+    "outDir": "./dist",          // 출력 디렉토리
+    "rootDir": "./src",          // 소스 디렉토리
+    "declaration": true,         // .d.ts 파일 생성
+    "sourceMap": true            // 소스맵 생성
+  },
+  "include": ["src/**/*"],       // 포함할 파일
+  "exclude": ["node_modules"]    // 제외할 파일
+}</code></pre>
+
+        <div class="fragment tip">
+          <strong>Tip:</strong> <code>tsc --init</code> 명령어로 기본 tsconfig.json을 자동 생성할 수 있습니다.
+        </div>
+      </section>
+
+      <!-- Slide 9: tsconfig important options -->
+      <section data-transition="slide">
+        <h2>주요 tsconfig 옵션</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>옵션</th>
+              <th>설명</th>
+              <th>권장값</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>strict</code></td>
+              <td>모든 엄격 모드 옵션 활성화</td>
+              <td><code>true</code></td>
+            </tr>
+            <tr>
+              <td><code>noImplicitAny</code></td>
+              <td>암시적 any 타입 금지</td>
+              <td><code>true</code></td>
+            </tr>
+            <tr>
+              <td><code>strictNullChecks</code></td>
+              <td>null/undefined 엄격 체크</td>
+              <td><code>true</code></td>
+            </tr>
+            <tr>
+              <td><code>target</code></td>
+              <td>출력 JS 버전</td>
+              <td><code>"ES2020"</code></td>
+            </tr>
+            <tr>
+              <td><code>module</code></td>
+              <td>모듈 시스템</td>
+              <td><code>"commonjs"</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="warning" style="margin-top: 20px;">
+          <strong>Warning:</strong> 새 프로젝트는 반드시 <code>"strict": true</code>로 시작하세요. 나중에 켜기 어렵습니다.
+        </div>
+      </section>
+
+      <!-- Slide 10: First Program -->
+      <section data-transition="slide">
+        <h2>첫 번째 TypeScript 프로그램</h2>
+        <p>hello.ts</p>
+        <pre><code class="language-typescript">// hello.ts
+function greet(name: string): string {
+  return `안녕하세요, ${name}님! TypeScript에 오신 것을 환영합니다.`;
+}
+
+const message: string = greet("홍길동");
+console.log(message);
+
+// 타입 에러 예시 (주석 해제하면 컴파일 에러)
+// greet(42);        // Error: Argument of type 'number'
+                     // is not assignable to parameter of type 'string'</code></pre>
+
+        <div class="fragment">
+          <h3 style="margin-top: 20px;">실행 방법</h3>
+          <pre><code class="language-bash"># 방법 1: 컴파일 후 실행
+tsc hello.ts          # hello.js 생성
+node hello.js         # 실행
+
+# 방법 2: ts-node으로 직접 실행 (개발용)
+npx ts-node hello.ts  # 컴파일 + 실행 한 번에</code></pre>
+        </div>
+      </section>
+
+      <!-- Slide 11: Compile Process -->
+      <section data-transition="slide">
+        <h2>TypeScript 컴파일 과정</h2>
+        <div style="text-align: center; font-size: 0.9em;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <div style="background: rgba(49,120,198,0.2); border: 2px solid var(--ts-blue); border-radius: 10px; padding: 20px 30px;">
+              <strong style="color: var(--ts-blue);">.ts 파일</strong><br>
+              <span style="font-size: 0.8em; color: #aaa;">TypeScript 코드</span>
+            </div>
+            <div style="font-size: 2em; color: var(--ts-blue);" class="fragment">&#8594;</div>
+            <div style="background: rgba(78,201,176,0.2); border: 2px solid var(--ts-green); border-radius: 10px; padding: 20px 30px;" class="fragment">
+              <strong style="color: var(--ts-green);">tsc 컴파일러</strong><br>
+              <span style="font-size: 0.8em; color: #aaa;">타입 검사 + 변환</span>
+            </div>
+            <div style="font-size: 2em; color: var(--ts-green);" class="fragment">&#8594;</div>
+            <div style="background: rgba(247,223,30,0.2); border: 2px solid var(--ts-accent); border-radius: 10px; padding: 20px 30px;" class="fragment">
+              <strong style="color: var(--ts-accent);">.js 파일</strong><br>
+              <span style="font-size: 0.8em; color: #aaa;">순수 JavaScript</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fragment key-point" style="margin-top: 30px;">
+          <h3>핵심 포인트</h3>
+          <p>타입 정보는 컴파일 후 <strong>완전히 제거</strong>됩니다.<br>
+          런타임에는 순수 JavaScript만 실행됩니다. (Zero Runtime Cost)</p>
+        </div>
+      </section>
+
+      <!-- Slide 12: Type Annotations -->
+      <section data-transition="slide">
+        <h2>타입 어노테이션 기초</h2>
+        <p>변수, 매개변수, 반환값에 타입을 명시적으로 지정</p>
+        <pre><code class="language-typescript">// 변수 타입 어노테이션
+let name: string = "김철수";
+let age: number = 25;
+let isStudent: boolean = true;
+
+// 배열 타입
+let scores: number[] = [90, 85, 92];
+let names: string[] = ["Alice", "Bob"];
+
+// 함수 매개변수와 반환 타입
+function multiply(x: number, y: number): number {
+  return x * y;
+}
+
+// 객체 타입
+let user: { name: string; age: number } = {
+  name: "이영희",
+  age: 30
+};</code></pre>
+      </section>
+
+      <!-- Slide 13: Type Inference -->
+      <section data-transition="slide">
+        <h2>타입 추론 (Type Inference)</h2>
+        <div class="key-point">
+          <h3>핵심 개념</h3>
+          <p>TypeScript는 초기값을 기반으로 <strong>타입을 자동 추론</strong>합니다.<br>
+          모든 곳에 타입을 명시할 필요가 없습니다!</p>
+        </div>
+        <pre><code class="language-typescript">// 타입 추론 - TypeScript가 자동으로 타입을 결정
+let message = "Hello";    // string으로 추론
+let count = 42;           // number로 추론
+let active = true;        // boolean으로 추론
+
+// 함수 반환 타입도 추론
+function add(a: number, b: number) {
+  return a + b;           // 반환 타입: number로 추론
+}
+
+// 배열 타입 추론
+let numbers = [1, 2, 3];     // number[]로 추론
+let mixed = [1, "hello"];    // (string | number)[]로 추론
+
+// const는 더 좁은 타입으로 추론
+const PI = 3.14;             // 타입: 3.14 (리터럴 타입)
+const greeting = "hello";    // 타입: "hello" (리터럴 타입)</code></pre>
+      </section>
+
+      <!-- Slide 14: Type Annotation vs Inference -->
+      <section data-transition="slide">
+        <h2>명시적 타입 vs 타입 추론</h2>
+        <p>언제 타입을 명시하고, 언제 추론에 맡길까?</p>
+
+        <div class="two-columns" style="margin-top: 20px;">
+          <div>
+            <h3 style="color: var(--ts-green); font-size: 1em;">추론에 맡기기 (권장)</h3>
+            <pre><code class="language-typescript">// 초기값이 있는 변수
+let name = "Kim";
+let age = 25;
+
+// 간단한 함수 반환
+function double(n: number) {
+  return n * 2; // number 추론
+}</code></pre>
+          </div>
+          <div>
+            <h3 style="color: var(--ts-blue); font-size: 1em;">명시적 타입 (권장)</h3>
+            <pre><code class="language-typescript">// 함수 매개변수
+function greet(name: string) { }
+
+// 초기값 없는 변수
+let result: number;
+
+// 복잡한 반환 타입
+function parse(s: string): User {
+  return JSON.parse(s);
+}</code></pre>
+          </div>
+        </div>
+
+        <div class="fragment tip" style="margin-top: 15px;">
+          <strong>Best Practice:</strong> 추론이 충분히 정확하면 생략하세요.
+          코드가 더 간결해집니다.
+        </div>
+      </section>
+
+      <!-- Slide 15: Compiled Output -->
+      <section data-transition="slide">
+        <h2>컴파일 전후 비교</h2>
+        <div class="two-columns">
+          <div>
+            <h3 style="color: var(--ts-blue); font-size: 1em;">TypeScript (.ts)</h3>
+            <pre><code class="language-typescript">interface User {
+  name: string;
+  age: number;
+}
+
+function greet(user: User): string {
+  return `Hi, ${user.name}!`;
+}
+
+const user: User = {
+  name: "Kim",
+  age: 25
+};
+
+console.log(greet(user));</code></pre>
+          </div>
+          <div>
+            <h3 style="color: var(--ts-accent); font-size: 1em;">JavaScript (.js)</h3>
+            <pre><code class="language-javascript">// interface -> 완전히 제거됨
+
+
+
+function greet(user) {
+  return `Hi, ${user.name}!`;
+}
+
+const user = {
+  name: "Kim",
+  age: 25
+};
+
+console.log(greet(user));</code></pre>
+          </div>
+        </div>
+        <div class="fragment key-point" style="padding: 12px 20px;">
+          <p style="text-align: center; margin: 0;">타입 정보는 개발 시에만 존재하고, 런타임 JS에는 흔적이 없습니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 16: Summary -->
+      <section data-transition="slide">
+        <h2>Chapter 1 정리</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>개념</th>
+              <th>설명</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>TypeScript</strong></td>
+              <td>JavaScript + 정적 타입 시스템</td>
+            </tr>
+            <tr>
+              <td><strong>컴파일</strong></td>
+              <td>.ts &#8594; .js (타입 제거됨)</td>
+            </tr>
+            <tr>
+              <td><strong>tsconfig.json</strong></td>
+              <td>프로젝트 컴파일 옵션 설정</td>
+            </tr>
+            <tr>
+              <td><strong>타입 어노테이션</strong></td>
+              <td><code>let x: type = value</code></td>
+            </tr>
+            <tr>
+              <td><strong>타입 추론</strong></td>
+              <td>초기값으로 자동 타입 결정</td>
+            </tr>
+            <tr>
+              <td><strong>strict 모드</strong></td>
+              <td>항상 true로 시작!</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="tip" style="margin-top: 20px;">
+          <strong>다음 챕터 예고:</strong> 기본 타입(string, number, boolean, enum, tuple 등)을 깊이 있게 학습합니다.
+        </div>
+      </section>
+
+      <!-- Slide 17: Next Chapter -->
+      <section class="chapter-title" data-transition="zoom">
+        <span class="chapter-number">Next</span>
+        <h1>수고하셨습니다!</h1>
+        <br>
+        <p>
+          <a href="02-basic-types.html" style="color: var(--ts-blue); font-size: 1.2em;">
+            다음 챕터: 기본 타입 &#8594;
+          </a>
+        </p>
+        <br>
+        <p><a href="../index.html" style="color: #888; font-size: 0.7em;">&#8592; 목차로 돌아가기</a></p>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <a href="../index.html" style="color: #888;">TypeScript 완전 정복</a> | Chapter 01
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

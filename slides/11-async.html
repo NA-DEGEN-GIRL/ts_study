@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Chapter 11: 비동기 프로그래밍 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section>
+        <div class="chapter-title">
+          <div class="chapter-number">Chapter 11</div>
+          <h1>비동기 프로그래밍</h1>
+          <p class="subtitle">Promise, async/await, 그리고 타입 안전한 비동기 처리</p>
+          <br>
+          <p>
+            <span class="badge badge-blue">Promise&lt;T&gt;</span>
+            <span class="badge badge-green">async/await</span>
+            <span class="badge badge-orange">Error Handling</span>
+            <span class="badge badge-red">AsyncGenerator</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 2: Callback Pattern -->
+      <section>
+        <h2>콜백 패턴과 그 문제점</h2>
+        <pre><code class="language-typescript" data-trim>
+// 전통적인 콜백 방식
+function fetchUser(
+  id: number,
+  callback: (error: Error | null, user?: User) => void
+) {
+  setTimeout(() => {
+    if (id <= 0) {
+      callback(new Error('유효하지 않은 ID'));
+      return;
+    }
+    callback(null, { id, name: '홍길동', email: 'hong@test.com' });
+  }, 1000);
+}
+        </code></pre>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// 콜백 지옥 (Callback Hell)
+fetchUser(1, (err, user) => {
+  if (err) return console.error(err);
+  fetchPosts(user!.id, (err, posts) => {
+    if (err) return console.error(err);
+    fetchComments(posts![0].id, (err, comments) => {
+      if (err) return console.error(err);
+      // 계속 중첩됨...
+      console.log(comments);
+    });
+  });
+});
+          </code></pre>
+        </div>
+        <div class="warning fragment">
+          <strong>문제점:</strong> 깊은 중첩, 에러 처리 반복, 타입 추론 어려움, 실행 순서 파악 어려움
+        </div>
+      </section>
+
+      <!-- Slide 3: Promises Basics -->
+      <section>
+        <h2>Promise 기초</h2>
+        <p>비동기 작업의 <strong>미래 결과</strong>를 나타내는 객체</p>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// Promise 생성
+const promise = new Promise&lt;string&gt;((resolve, reject) => {
+  const success = true;
+  setTimeout(() => {
+    if (success) {
+      resolve('작업 완료!');   // 성공 시 resolve 호출
+    } else {
+      reject(new Error('작업 실패'));  // 실패 시 reject 호출
+    }
+  }, 1000);
+});
+
+// Promise 소비
+promise
+  .then(result => console.log(result))   // '작업 완료!'
+  .catch(error => console.error(error));
+          </code></pre>
+        </div>
+        <div class="key-point fragment">
+          <h3>Promise의 3가지 상태</h3>
+          <p>
+            <span class="badge badge-orange">Pending</span> 대기 중 &rarr;
+            <span class="badge badge-green">Fulfilled</span> 이행됨 (resolve) 또는
+            <span class="badge badge-red">Rejected</span> 거부됨 (reject)
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 4: Promise<T> Typing -->
+      <section>
+        <h2>Promise&lt;T&gt; 타입 지정</h2>
+        <pre><code class="language-typescript" data-trim>
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface ApiError {
+  code: number;
+  message: string;
+}
+
+// Promise의 제네릭 타입으로 resolve 값의 타입을 지정
+function fetchUser(id: number): Promise&lt;User&gt; {
+  return new Promise((resolve, reject) => {
+    // resolve는 User 타입만 받을 수 있음
+    resolve({ id, name: '홍길동', email: 'hong@test.com' });
+    // resolve('문자열'); // 타입 에러!
+  });
+}
+
+// 반환 타입이 자동 추론됨
+async function getUser(id: number) {
+  const user = await fetchUser(id);
+  // user: User 로 자동 추론!
+  console.log(user.name);  // OK
+  console.log(user.age);   // 타입 에러! 'age'는 User에 없음
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>팁:</strong> <code>Promise&lt;void&gt;</code>는 반환값이 없는 비동기 함수에 사용합니다.
+          <code>Promise&lt;never&gt;</code>는 항상 reject되는 Promise에 사용합니다.
+        </div>
+      </section>
+
+      <!-- Slide 5: Promise Chaining -->
+      <section>
+        <h2>Promise 체이닝</h2>
+        <pre><code class="language-typescript" data-trim>
+interface User { id: number; name: string; }
+interface Post { id: number; title: string; authorId: number; }
+interface Comment { id: number; body: string; postId: number; }
+
+function fetchUser(id: number): Promise&lt;User&gt; { /* ... */ }
+function fetchPosts(userId: number): Promise&lt;Post[]&gt; { /* ... */ }
+function fetchComments(postId: number): Promise&lt;Comment[]&gt; { /* ... */ }
+
+// 체이닝으로 콜백 지옥 해결
+fetchUser(1)
+  .then(user => {
+    console.log(`사용자: ${user.name}`);
+    return fetchPosts(user.id);          // Promise&lt;Post[]&gt;
+  })
+  .then(posts => {
+    console.log(`게시물 수: ${posts.length}`);
+    return fetchComments(posts[0].id);   // Promise&lt;Comment[]&gt;
+  })
+  .then(comments => {
+    console.log(`댓글 수: ${comments.length}`);
+  })
+  .catch(error => {
+    // 체인 어디서든 발생한 에러를 여기서 처리
+    console.error('오류 발생:', error.message);
+  })
+  .finally(() => {
+    console.log('완료 (성공/실패 무관)');
+  });
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>핵심</h3>
+          <p>각 <code>.then()</code>의 반환 타입이 다음 <code>.then()</code>의 입력 타입이 됩니다. TypeScript가 체인 전체의 타입을 추적합니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 6: async/await -->
+      <section>
+        <h2>async/await</h2>
+        <p>Promise를 <strong>동기 코드처럼</strong> 작성하는 문법적 설탕</p>
+        <div class="two-columns">
+          <div>
+            <h3>Promise 체이닝</h3>
+            <pre><code class="language-typescript" data-trim>
+function loadData(): Promise&lt;Data&gt; {
+  return fetchUser(1)
+    .then(user =>
+      fetchPosts(user.id)
+    )
+    .then(posts =>
+      processData(posts)
+    );
+}
+            </code></pre>
+          </div>
+          <div>
+            <h3>async/await</h3>
+            <pre><code class="language-typescript" data-trim>
+async function loadData(): Promise&lt;Data&gt; {
+  const user = await fetchUser(1);
+  const posts = await fetchPosts(
+    user.id
+  );
+  return processData(posts);
+}
+            </code></pre>
+          </div>
+        </div>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// async 함수는 항상 Promise를 반환
+async function greet(name: string): Promise&lt;string&gt; {
+  return `안녕하세요, ${name}님!`;
+}
+
+// 이것과 동일:
+function greet(name: string): Promise&lt;string&gt; {
+  return Promise.resolve(`안녕하세요, ${name}님!`);
+}
+          </code></pre>
+        </div>
+        <div class="tip fragment">
+          <strong>규칙:</strong> <code>await</code>는 <code>async</code> 함수 내부에서만 사용 가능합니다. (ES2022+ 최상위 await 제외)
+        </div>
+      </section>
+
+      <!-- Slide 7: Error Handling with try/catch -->
+      <section>
+        <h2>에러 처리: try/catch</h2>
+        <pre><code class="language-typescript" data-trim>
+// 기본 try/catch 패턴
+async function getUserData(id: number): Promise&lt;User | null&gt; {
+  try {
+    const response = await fetch(`/api/users/${id}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP 에러: ${response.status}`);
+    }
+
+    const user: User = await response.json();
+    return user;
+  } catch (error) {
+    // TS에서 catch의 error는 기본적으로 unknown 타입
+    if (error instanceof Error) {
+      console.error('사용자 조회 실패:', error.message);
+    }
+    return null;
+  } finally {
+    // 성공/실패 관계없이 실행
+    console.log('API 호출 완료');
+  }
+}
+        </code></pre>
+        <div class="warning fragment">
+          <strong>주의:</strong> TypeScript 4.4+에서 <code>catch(error)</code>의 <code>error</code>는 <code>unknown</code> 타입입니다. 반드시 타입 가드로 좁혀서 사용하세요.
+        </div>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// 커스텀 에러 클래스로 정밀한 에러 처리
+class ApiError extends Error {
+  constructor(public statusCode: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+try {
+  await fetchData();
+} catch (error) {
+  if (error instanceof ApiError) {
+    console.log(error.statusCode); // number 접근 가능
+  } else if (error instanceof TypeError) {
+    console.log('타입 에러:', error.message);
+  } else {
+    console.log('알 수 없는 에러');
+  }
+}
+          </code></pre>
+        </div>
+      </section>
+
+      <!-- Slide 8: Promise.all -->
+      <section>
+        <h2>Promise.all</h2>
+        <p>여러 Promise를 <strong>병렬</strong>로 실행하고 모두 완료되면 결과 반환</p>
+        <pre><code class="language-typescript" data-trim>
+// 모든 Promise가 성공해야 결과를 받음
+async function loadDashboard(userId: number) {
+  const [user, posts, notifications] = await Promise.all([
+    fetchUser(userId),           // Promise&lt;User&gt;
+    fetchPosts(userId),          // Promise&lt;Post[]&gt;
+    fetchNotifications(userId),  // Promise&lt;Notification[]&gt;
+  ]);
+  // user: User, posts: Post[], notifications: Notification[]
+  // 타입이 튜플로 정확히 추론됨!
+
+  return { user, posts, notifications };
+}
+        </code></pre>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// 타입 추론 확인
+const results = await Promise.all([
+  Promise.resolve(42),           // number
+  Promise.resolve('hello'),      // string
+  Promise.resolve(true),         // boolean
+]);
+// results: [number, string, boolean] - 튜플 타입!
+          </code></pre>
+        </div>
+        <div class="warning fragment">
+          <strong>주의:</strong> 하나라도 reject되면 전체가 즉시 reject됩니다. 부분 실패를 허용하려면 <code>Promise.allSettled</code>를 사용하세요.
+        </div>
+      </section>
+
+      <!-- Slide 9: Promise.race, Promise.allSettled -->
+      <section>
+        <h2>Promise.race & Promise.allSettled</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Promise.race</h3>
+            <p>가장 먼저 완료된 결과만</p>
+            <pre><code class="language-typescript" data-trim>
+// 타임아웃 구현
+function withTimeout&lt;T&gt;(
+  promise: Promise&lt;T&gt;,
+  ms: number
+): Promise&lt;T&gt; {
+  const timeout = new Promise&lt;never&gt;(
+    (_, reject) => setTimeout(
+      () => reject(
+        new Error('Timeout')
+      ),
+      ms
+    )
+  );
+
+  return Promise.race([
+    promise,
+    timeout
+  ]);
+}
+
+// 3초 안에 응답 없으면 에러
+const data = await withTimeout(
+  fetchData(), 3000
+);
+            </code></pre>
+          </div>
+          <div>
+            <h3>Promise.allSettled</h3>
+            <p>모든 결과를 성공/실패 포함</p>
+            <pre><code class="language-typescript" data-trim>
+const results =
+  await Promise.allSettled([
+    fetchUser(1),
+    fetchUser(2),
+    fetchUser(999), // 실패
+  ]);
+
+results.forEach((result, i) => {
+  if (result.status === 'fulfilled') {
+    // result.value: User
+    console.log(
+      `#${i} 성공:`,
+      result.value.name
+    );
+  } else {
+    // result.reason: any
+    console.log(
+      `#${i} 실패:`,
+      result.reason
+    );
+  }
+});
+
+// #0 성공: 홍길동
+// #1 성공: 김영희
+// #2 실패: User not found
+            </code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 10: Typing Async Functions -->
+      <section>
+        <h2>비동기 함수의 타입 정의</h2>
+        <pre><code class="language-typescript" data-trim>
+// 함수 시그니처 타입
+type AsyncFn&lt;T&gt; = () => Promise&lt;T&gt;;
+type AsyncFnWithArg&lt;A, T&gt; = (arg: A) => Promise&lt;T&gt;;
+
+// 인터페이스에서 비동기 메서드 정의
+interface UserRepository {
+  findById(id: number): Promise&lt;User | null&gt;;
+  findAll(): Promise&lt;User[]&gt;;
+  create(data: CreateUserDto): Promise&lt;User&gt;;
+  update(id: number, data: Partial&lt;User&gt;): Promise&lt;User&gt;;
+  delete(id: number): Promise&lt;void&gt;;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 유틸리티 타입: Promise 내부 타입 추출
+type Awaited&lt;T&gt; = T extends Promise&lt;infer U&gt; ? U : T;
+// TypeScript 4.5+에서는 내장 Awaited 타입 사용 가능
+
+type A = Awaited&lt;Promise&lt;string&gt;&gt;;         // string
+type B = Awaited&lt;Promise&lt;Promise&lt;number&gt;&gt;&gt;; // number (재귀적)
+
+// ReturnType과 함께 사용
+async function fetchConfig() {
+  return { apiUrl: 'https://...', timeout: 5000 };
+}
+
+type Config = Awaited&lt;ReturnType&lt;typeof fetchConfig&gt;&gt;;
+// { apiUrl: string; timeout: number }
+        </code></pre>
+      </section>
+
+      <!-- Slide 11: AsyncGenerator -->
+      <section>
+        <h2>AsyncGenerator & for-await-of</h2>
+        <p>비동기적으로 데이터를 순차적으로 생산하고 소비하는 패턴</p>
+        <pre><code class="language-typescript" data-trim>
+// 비동기 제너레이터: 페이지네이션 처리
+async function* fetchAllPages&lt;T&gt;(
+  baseUrl: string
+): AsyncGenerator&lt;T[], void, unknown&gt; {
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await fetch(`${baseUrl}?page=${page}`);
+    const data = await response.json();
+
+    yield data.items as T[];
+
+    hasMore = data.hasNextPage;
+    page++;
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// for-await-of로 비동기 이터레이터 소비
+async function processAllUsers() {
+  const allUsers: User[] = [];
+
+  for await (const page of fetchAllPages&lt;User&gt;('/api/users')) {
+    allUsers.push(...page);
+    console.log(`${allUsers.length}명 로드됨...`);
+  }
+
+  console.log(`총 ${allUsers.length}명의 사용자 처리 완료`);
+  return allUsers;
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>활용:</strong> 대용량 데이터 스트리밍, WebSocket 메시지 처리, SSE(Server-Sent Events) 등에 유용합니다.
+        </div>
+      </section>
+
+      <!-- Slide 12: Real-world Fetch Wrapper -->
+      <section>
+        <h2>실전: 타입 안전한 Fetch 래퍼</h2>
+        <pre><code class="language-typescript" data-trim style="font-size: 0.78em;">
+class ApiClient {
+  constructor(private baseUrl: string) {}
+
+  private async request&lt;T&gt;(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise&lt;T&gt; {
+    const url = `${this.baseUrl}${endpoint}`;
+    const config: RequestInit = {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    };
+
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new ApiError(response.status, errorBody.message || '요청 실패');
+    }
+
+    return response.json() as Promise&lt;T&gt;;
+  }
+
+  get&lt;T&gt;(endpoint: string): Promise&lt;T&gt; {
+    return this.request&lt;T&gt;(endpoint, { method: 'GET' });
+  }
+
+  post&lt;T, B = unknown&gt;(endpoint: string, body: B): Promise&lt;T&gt; {
+    return this.request&lt;T&gt;(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  put&lt;T, B = unknown&gt;(endpoint: string, body: B): Promise&lt;T&gt; {
+    return this.request&lt;T&gt;(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  delete&lt;T = void&gt;(endpoint: string): Promise&lt;T&gt; {
+    return this.request&lt;T&gt;(endpoint, { method: 'DELETE' });
+  }
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 13: Using the Fetch Wrapper -->
+      <section>
+        <h2>Fetch 래퍼 활용</h2>
+        <pre><code class="language-typescript" data-trim>
+// API 클라이언트 인스턴스 생성
+const api = new ApiClient('https://api.example.com');
+
+// 완전한 타입 안전성!
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface CreateUserDto {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// 사용 - 제네릭으로 응답 타입 지정
+async function userCRUD() {
+  // GET: User[] 타입으로 자동 추론
+  const users = await api.get&lt;User[]&gt;('/users');
+  console.log(users[0].name); // OK, string
+
+  // POST: 요청 body와 응답 타입 모두 지정
+  const newUser = await api.post&lt;User, CreateUserDto&gt;('/users', {
+    name: '김철수',
+    email: 'kim@test.com',
+    password: 'secure123',
+  });
+  console.log(newUser.id); // OK, number
+
+  // DELETE: void 반환
+  await api.delete('/users/1');
+}
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>장점</h3>
+          <p>모든 API 호출의 요청/응답 타입이 컴파일 타임에 검증됩니다. 잘못된 필드 접근이나 타입 불일치를 사전에 방지!</p>
+        </div>
+      </section>
+
+      <!-- Slide 14: Error Handling Patterns -->
+      <section>
+        <h2>비동기 에러 처리 패턴</h2>
+        <pre><code class="language-typescript" data-trim>
+// 패턴 1: Go 스타일 - tuple 반환
+async function safeAsync&lt;T&gt;(
+  promise: Promise&lt;T&gt;
+): Promise&lt;[T, null] | [null, Error]&gt; {
+  try {
+    const data = await promise;
+    return [data, null];
+  } catch (error) {
+    return [null, error instanceof Error ? error : new Error(String(error))];
+  }
+}
+
+// 사용
+const [user, error] = await safeAsync(fetchUser(1));
+if (error) {
+  console.error('실패:', error.message);
+} else {
+  console.log('성공:', user.name); // user는 User 타입
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 패턴 2: 재시도 로직
+async function withRetry&lt;T&gt;(
+  fn: () => Promise&lt;T&gt;,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise&lt;T&gt; {
+  for (let attempt = 1; attempt &lt;= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+      console.log(`시도 ${attempt} 실패, ${delay}ms 후 재시도...`);
+      await new Promise(r => setTimeout(r, delay * attempt));
+    }
+  }
+  throw new Error('도달할 수 없는 코드'); // TypeScript 만족
+}
+
+const data = await withRetry(() => fetchData(), 3, 2000);
+        </code></pre>
+      </section>
+
+      <!-- Slide 15: Advanced Pattern - Concurrent Control -->
+      <section>
+        <h2>고급: 동시성 제어</h2>
+        <pre><code class="language-typescript" data-trim>
+// 동시 실행 수를 제한하는 유틸리티
+async function asyncPool&lt;T, R&gt;(
+  concurrency: number,
+  items: T[],
+  fn: (item: T) => Promise&lt;R&gt;
+): Promise&lt;R[]&gt; {
+  const results: R[] = [];
+  const executing = new Set&lt;Promise&lt;void&gt;&gt;();
+
+  for (const [index, item] of items.entries()) {
+    const promise = fn(item).then(result => {
+      results[index] = result;
+    });
+
+    const wrapped = promise.then(() => {
+      executing.delete(wrapped);
+    });
+
+    executing.add(wrapped);
+
+    if (executing.size >= concurrency) {
+      await Promise.race(executing);
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 한 번에 최대 3개씩만 요청
+const userIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const users = await asyncPool(
+  3,                         // 동시에 3개까지만
+  userIds,
+  (id) => fetchUser(id)      // 각 ID에 대해 비동기 실행
+);
+console.log(`${users.length}명 로드 완료`);
+        </code></pre>
+      </section>
+
+      <!-- Slide 16: Summary -->
+      <section>
+        <h2>Chapter 11 요약</h2>
+        <div class="two-columns">
+          <div>
+            <div class="key-point">
+              <h3>비동기 기초</h3>
+              <ul>
+                <li class="fragment"><strong>Promise&lt;T&gt;</strong> - 타입이 있는 비동기 값</li>
+                <li class="fragment"><strong>async/await</strong> - 동기 스타일 비동기 코드</li>
+                <li class="fragment"><strong>try/catch</strong> - unknown 타입 에러 처리</li>
+                <li class="fragment"><strong>Promise.all</strong> - 병렬 실행</li>
+                <li class="fragment"><strong>Promise.allSettled</strong> - 부분 실패 허용</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="key-point">
+              <h3>고급 패턴</h3>
+              <ul>
+                <li class="fragment"><strong>AsyncGenerator</strong> - 스트리밍</li>
+                <li class="fragment"><strong>API 클라이언트</strong> - 타입 안전 래퍼</li>
+                <li class="fragment"><strong>safeAsync</strong> - Go 스타일 에러</li>
+                <li class="fragment"><strong>withRetry</strong> - 재시도 로직</li>
+                <li class="fragment"><strong>asyncPool</strong> - 동시성 제어</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="tip fragment">
+          <strong>핵심 원칙:</strong> 비동기 코드에서도 타입 안전성을 유지하세요. <code>any</code>로 도망치지 마세요!
+        </div>
+        <br>
+        <p class="fragment">
+          <a href="12-real-world.html" style="color: var(--ts-blue);">
+            다음 챕터: Chapter 12 - 실전 패턴 &rarr;
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

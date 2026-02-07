@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Chapter 5: 클래스 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section class="chapter-title">
+        <div class="chapter-number">Chapter 5</div>
+        <h1>클래스</h1>
+        <p class="subtitle">TypeScript의 객체지향 프로그래밍</p>
+        <br>
+        <p style="font-size:0.6em; color:#888;">
+          <span class="badge badge-blue">OOP</span>
+          <span class="badge badge-green">캡슐화</span>
+          <span class="badge badge-orange">상속</span>
+          <span class="badge badge-red">추상화</span>
+        </p>
+      </section>
+
+      <!-- Slide 2: Class Basics -->
+      <section>
+        <h2>클래스 기본 구조</h2>
+        <p>프로퍼티, 생성자, 메서드로 구성됩니다</p>
+        <pre><code class="typescript" data-trim data-noescape>
+class User {
+  // 프로퍼티 선언 (타입 필수!)
+  name: string;
+  email: string;
+  age: number;
+
+  // 생성자
+  constructor(name: string, email: string, age: number) {
+    this.name = name;
+    this.email = email;
+    this.age = age;
+  }
+
+  // 메서드
+  greet(): string {
+    return `안녕하세요, ${this.name}입니다!`;
+  }
+}
+
+const user = new User("홍길동", "hong@example.com", 30);
+console.log(user.greet()); // "안녕하세요, 홍길동입니다!"
+        </code></pre>
+        <div class="tip fragment">
+          TypeScript에서는 프로퍼티를 <strong>반드시 선언</strong>해야 합니다. JavaScript처럼 constructor에서 바로 할당하면 오류!
+        </div>
+      </section>
+
+      <!-- Slide 3: Access Modifiers -->
+      <section>
+        <h2>접근 제한자 (Access Modifiers)</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>제한자</th>
+              <th>클래스 내부</th>
+              <th>자식 클래스</th>
+              <th>외부</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fragment">
+              <td><span class="badge badge-green">public</span></td>
+              <td>O</td>
+              <td>O</td>
+              <td>O</td>
+            </tr>
+            <tr class="fragment">
+              <td><span class="badge badge-orange">protected</span></td>
+              <td>O</td>
+              <td>O</td>
+              <td>X</td>
+            </tr>
+            <tr class="fragment">
+              <td><span class="badge badge-red">private</span></td>
+              <td>O</td>
+              <td>X</td>
+              <td>X</td>
+            </tr>
+          </tbody>
+        </table>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+class BankAccount {
+  public owner: string;         // 어디서든 접근 가능 (기본값)
+  protected balance: number;    // 클래스와 자식에서만
+  private pin: string;          // 이 클래스 내부에서만
+
+  constructor(owner: string, balance: number, pin: string) {
+    this.owner = owner;
+    this.balance = balance;
+    this.pin = pin;
+  }
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 4: Access Modifiers in Action -->
+      <section>
+        <h2>접근 제한자 실전 예제</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+class BankAccount {
+  public owner: string;
+  protected balance: number;
+  private pin: string;
+
+  constructor(owner: string, balance: number, pin: string) {
+    this.owner = owner;
+    this.balance = balance;
+    this.pin = pin;
+  }
+
+  private verifyPin(inputPin: string): boolean {
+    return this.pin === inputPin;
+  }
+
+  public withdraw(amount: number, inputPin: string): boolean {
+    if (!this.verifyPin(inputPin)) return false;
+    if (this.balance < amount) return false;
+    this.balance -= amount;
+    return true;
+  }
+}
+
+class SavingsAccount extends BankAccount {
+  getBalance(): number {
+    return this.balance;    // OK: protected 접근 가능
+    // return this.pin;     // Error: private 접근 불가!
+  }
+}
+
+const account = new BankAccount("홍길동", 10000, "1234");
+account.owner;              // OK: public
+// account.balance;         // Error: protected
+// account.pin;             // Error: private
+        </code></pre>
+      </section>
+
+      <!-- Slide 5: readonly -->
+      <section>
+        <h2>readonly 프로퍼티</h2>
+        <p>생성 시에만 값을 할당하고, 이후 변경 불가</p>
+        <pre><code class="typescript" data-trim data-noescape>
+class Config {
+  readonly apiUrl: string;
+  readonly maxRetries: number;
+  readonly createdAt: Date;
+
+  constructor(apiUrl: string, maxRetries: number) {
+    // 생성자에서만 할당 가능
+    this.apiUrl = apiUrl;
+    this.maxRetries = maxRetries;
+    this.createdAt = new Date();
+  }
+
+  // updateUrl(url: string) {
+  //   this.apiUrl = url;  // Error! readonly 변경 불가
+  // }
+}
+
+const config = new Config("https://api.example.com", 3);
+console.log(config.apiUrl);     // OK: 읽기는 가능
+// config.apiUrl = "new-url";   // Error: readonly!
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>readonly vs const</h3>
+          <p><code>const</code>는 변수에, <code>readonly</code>는 프로퍼티에 사용합니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 6: Parameter Properties -->
+      <section>
+        <h2>매개변수 프로퍼티 (Parameter Properties)</h2>
+        <p>생성자 매개변수에 접근 제한자를 붙이면 자동으로 프로퍼티 선언 + 할당!</p>
+        <div class="two-columns">
+          <div>
+            <h3>기존 방식 (장황함)</h3>
+            <pre><code class="typescript" data-trim data-noescape>
+class User {
+  public name: string;
+  private email: string;
+  readonly id: number;
+
+  constructor(
+    name: string,
+    email: string,
+    id: number
+  ) {
+    this.name = name;
+    this.email = email;
+    this.id = id;
+  }
+}
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <h3>매개변수 프로퍼티 (간결!)</h3>
+            <pre><code class="typescript" data-trim data-noescape>
+class User {
+  constructor(
+    public name: string,
+    private email: string,
+    readonly id: number
+  ) {
+    // 자동으로 선언 + 할당!
+    // 본문이 비어있어도 OK
+  }
+}
+            </code></pre>
+          </div>
+        </div>
+        <div class="tip fragment">
+          두 코드는 <strong>완전히 동일</strong>합니다. 매개변수 프로퍼티를 사용하면 보일러플레이트를 크게 줄일 수 있습니다.
+        </div>
+      </section>
+
+      <!-- Slide 7: Getters and Setters -->
+      <section>
+        <h2>Getter / Setter</h2>
+        <p>프로퍼티 접근을 제어하고 유효성 검증 로직을 추가</p>
+        <pre><code class="typescript" data-trim data-noescape>
+class Temperature {
+  private _celsius: number;
+
+  constructor(celsius: number) {
+    this._celsius = celsius;
+  }
+
+  // Getter: 프로퍼티처럼 읽기
+  get fahrenheit(): number {
+    return this._celsius * 9 / 5 + 32;
+  }
+
+  // Setter: 프로퍼티처럼 쓰기 + 유효성 검증
+  set celsius(value: number) {
+    if (value < -273.15) {
+      throw new Error("절대영도 이하는 불가능합니다!");
+    }
+    this._celsius = value;
+  }
+
+  get celsius(): number {
+    return this._celsius;
+  }
+}
+
+const temp = new Temperature(100);
+console.log(temp.fahrenheit);  // 212 (마치 프로퍼티처럼!)
+temp.celsius = 0;              // setter 호출
+// temp.celsius = -300;        // Error: 절대영도 이하!
+        </code></pre>
+        <div class="tip fragment">
+          Getter만 있고 Setter가 없으면 자동으로 <strong>readonly</strong>가 됩니다.
+        </div>
+      </section>
+
+      <!-- Slide 8: Static Members -->
+      <section>
+        <h2>정적 멤버 (Static Members)</h2>
+        <p>인스턴스가 아닌 <strong>클래스 자체</strong>에 속하는 멤버</p>
+        <pre><code class="typescript" data-trim data-noescape>
+class MathUtils {
+  static readonly PI = 3.14159265;
+
+  static circleArea(radius: number): number {
+    return MathUtils.PI * radius ** 2;
+  }
+
+  static clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+  }
+}
+
+// 인스턴스 생성 없이 직접 호출
+console.log(MathUtils.PI);              // 3.14159265
+console.log(MathUtils.circleArea(5));   // 78.539...
+console.log(MathUtils.clamp(15, 0, 10)); // 10
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 실전: 싱글톤 패턴
+class Database {
+  private static instance: Database;
+
+  private constructor(private connectionString: string) {}
+
+  static getInstance(): Database {
+    if (!Database.instance) {
+      Database.instance = new Database("mongodb://localhost:27017");
+    }
+    return Database.instance;
+  }
+}
+
+const db1 = Database.getInstance();
+const db2 = Database.getInstance();
+console.log(db1 === db2); // true (같은 인스턴스)
+        </code></pre>
+      </section>
+
+      <!-- Slide 9: Abstract Classes -->
+      <section>
+        <h2>추상 클래스 (Abstract Classes)</h2>
+        <p>직접 인스턴스화할 수 없고, 반드시 상속해서 구현해야 하는 클래스</p>
+        <pre><code class="typescript" data-trim data-noescape>
+abstract class Shape {
+  constructor(public color: string) {}
+
+  // 추상 메서드: 구현 없이 시그니처만 정의
+  abstract getArea(): number;
+  abstract getPerimeter(): number;
+
+  // 일반 메서드: 공통 로직 제공
+  describe(): string {
+    return `${this.color} 도형 (면적: ${this.getArea().toFixed(2)})`;
+  }
+}
+
+// const shape = new Shape("red"); // Error! 추상 클래스 인스턴스화 불가
+
+class Circle extends Shape {
+  constructor(color: string, public radius: number) {
+    super(color);
+  }
+
+  // 반드시 구현해야 함!
+  getArea(): number {
+    return Math.PI * this.radius ** 2;
+  }
+
+  getPerimeter(): number {
+    return 2 * Math.PI * this.radius;
+  }
+}
+
+class Rectangle extends Shape {
+  constructor(color: string, public width: number, public height: number) {
+    super(color);
+  }
+
+  getArea(): number { return this.width * this.height; }
+  getPerimeter(): number { return 2 * (this.width + this.height); }
+}
+
+const circle = new Circle("파랑", 5);
+console.log(circle.describe()); // "파랑 도형 (면적: 78.54)"
+        </code></pre>
+      </section>
+
+      <!-- Slide 10: Abstract vs Interface -->
+      <section>
+        <h2>추상 클래스 vs 인터페이스</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>특성</th>
+              <th>추상 클래스</th>
+              <th>인터페이스</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fragment">
+              <td>구현 코드 포함</td>
+              <td>가능 (일반 메서드)</td>
+              <td>불가능</td>
+            </tr>
+            <tr class="fragment">
+              <td>다중 상속/구현</td>
+              <td>단일 상속만</td>
+              <td>다중 구현 가능</td>
+            </tr>
+            <tr class="fragment">
+              <td>생성자</td>
+              <td>가질 수 있음</td>
+              <td>없음</td>
+            </tr>
+            <tr class="fragment">
+              <td>접근 제한자</td>
+              <td>사용 가능</td>
+              <td>public만</td>
+            </tr>
+            <tr class="fragment">
+              <td>런타임 존재</td>
+              <td>JavaScript로 컴파일됨</td>
+              <td>컴파일 시 제거됨</td>
+            </tr>
+            <tr class="fragment">
+              <td>사용 시기</td>
+              <td>공통 구현 + 틀 제공</td>
+              <td>계약(규격) 정의</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="key-point fragment">
+          <h3>선택 기준</h3>
+          <p>공통 로직이 있으면 <strong>추상 클래스</strong>, 순수하게 형태만 정의하면 <strong>인터페이스</strong></p>
+        </div>
+      </section>
+
+      <!-- Slide 11: Implementing Interfaces -->
+      <section>
+        <h2>인터페이스 구현 (implements)</h2>
+        <p>클래스가 특정 인터페이스의 계약을 이행하도록 강제</p>
+        <pre><code class="typescript" data-trim data-noescape>
+interface Serializable {
+  serialize(): string;
+  deserialize(data: string): void;
+}
+
+interface Loggable {
+  log(message: string): void;
+}
+
+// 다중 인터페이스 구현 가능!
+class UserProfile implements Serializable, Loggable {
+  constructor(
+    public name: string,
+    public email: string
+  ) {}
+
+  serialize(): string {
+    return JSON.stringify({ name: this.name, email: this.email });
+  }
+
+  deserialize(data: string): void {
+    const parsed = JSON.parse(data);
+    this.name = parsed.name;
+    this.email = parsed.email;
+  }
+
+  log(message: string): void {
+    console.log(`[UserProfile] ${message}`);
+  }
+}
+
+// 인터페이스 타입으로 사용 가능
+function saveToFile(item: Serializable): void {
+  const data = item.serialize();
+  // 파일에 저장...
+}
+        </code></pre>
+        <div class="warning fragment">
+          <code>implements</code>는 타입 체크만 합니다. 인터페이스의 메서드를 구현하지 않으면 컴파일 에러!
+        </div>
+      </section>
+
+      <!-- Slide 12: Class Expressions -->
+      <section>
+        <h2>클래스 표현식 (Class Expressions)</h2>
+        <p>함수 표현식처럼 클래스도 표현식으로 사용 가능</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// 이름 있는 클래스 표현식
+const Animal = class AnimalClass {
+  constructor(public name: string) {}
+
+  speak(): string {
+    return `${this.name}이(가) 소리를 냅니다.`;
+  }
+};
+
+const dog = new Animal("멍멍이");
+// new AnimalClass("..."); // Error: 외부에서 클래스 이름 접근 불가
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 실전: 팩토리 패턴에서 유용
+function createLogger(prefix: string) {
+  return class {
+    log(message: string) {
+      console.log(`[${prefix}] ${message}`);
+    }
+  };
+}
+
+const AppLogger = createLogger("APP");
+const DbLogger = createLogger("DB");
+
+const logger = new AppLogger();
+logger.log("서버 시작됨"); // [APP] 서버 시작됨
+        </code></pre>
+      </section>
+
+      <!-- Slide 13: this Type -->
+      <section>
+        <h2>this 타입</h2>
+        <p><code>this</code>를 타입으로 사용하면 메서드 체이닝에 유용</p>
+        <pre><code class="typescript" data-trim data-noescape>
+class QueryBuilder {
+  private conditions: string[] = [];
+  private orderByField?: string;
+
+  where(condition: string): this {
+    this.conditions.push(condition);
+    return this; // this 반환으로 체이닝
+  }
+
+  orderBy(field: string): this {
+    this.orderByField = field;
+    return this;
+  }
+
+  build(): string {
+    let query = "SELECT * FROM table";
+    if (this.conditions.length > 0) {
+      query += " WHERE " + this.conditions.join(" AND ");
+    }
+    if (this.orderByField) {
+      query += " ORDER BY " + this.orderByField;
+    }
+    return query;
+  }
+}
+
+// 자식 클래스에서도 체이닝이 유지됨!
+class AdvancedQueryBuilder extends QueryBuilder {
+  private limitCount?: number;
+
+  limit(count: number): this {
+    this.limitCount = count;
+    return this;
+  }
+}
+
+const query = new AdvancedQueryBuilder()
+  .where("age > 18")       // this = AdvancedQueryBuilder
+  .where("active = true")  // this = AdvancedQueryBuilder
+  .orderBy("name")         // this = AdvancedQueryBuilder
+  .limit(10)               // this = AdvancedQueryBuilder
+  .build();
+        </code></pre>
+      </section>
+
+      <!-- Slide 14: Mixins Pattern -->
+      <section>
+        <h2>믹스인 패턴 (Mixins)</h2>
+        <p>다중 상속의 대안 - 여러 클래스의 기능을 조합</p>
+        <pre><code class="typescript" data-trim data-noescape>
+// 믹스인을 위한 생성자 타입
+type Constructor&lt;T = {}&gt; = new (...args: any[]) => T;
+
+// 타임스탬프 믹스인
+function Timestamped&lt;TBase extends Constructor&gt;(Base: TBase) {
+  return class extends Base {
+    createdAt = new Date();
+    updatedAt = new Date();
+
+    touch() {
+      this.updatedAt = new Date();
+    }
+  };
+}
+
+// 소프트 삭제 믹스인
+function SoftDeletable&lt;TBase extends Constructor&gt;(Base: TBase) {
+  return class extends Base {
+    isDeleted = false;
+    deletedAt?: Date;
+
+    softDelete() {
+      this.isDeleted = true;
+      this.deletedAt = new Date();
+    }
+  };
+}
+
+// 기본 클래스
+class User {
+  constructor(public name: string, public email: string) {}
+}
+
+// 믹스인 조합!
+const EnhancedUser = SoftDeletable(Timestamped(User));
+
+const user = new EnhancedUser("홍길동", "hong@mail.com");
+user.touch();         // Timestamped 기능
+user.softDelete();    // SoftDeletable 기능
+console.log(user.createdAt, user.isDeleted); // 모든 기능 사용 가능
+        </code></pre>
+      </section>
+
+      <!-- Slide 15: Real-World Example -->
+      <section>
+        <h2>실전 예제: 이벤트 시스템</h2>
+        <pre><code class="typescript" data-trim data-noescape>
+type EventHandler&lt;T = any&gt; = (data: T) => void;
+
+abstract class EventEmitter {
+  private handlers: Map&lt;string, EventHandler[]&gt; = new Map();
+
+  on(event: string, handler: EventHandler): void {
+    const existing = this.handlers.get(event) || [];
+    this.handlers.set(event, [...existing, handler]);
+  }
+
+  protected emit(event: string, data?: any): void {
+    const handlers = this.handlers.get(event) || [];
+    handlers.forEach(handler => handler(data));
+  }
+
+  off(event: string, handler: EventHandler): void {
+    const existing = this.handlers.get(event) || [];
+    this.handlers.set(event, existing.filter(h => h !== handler));
+  }
+}
+
+class ShoppingCart extends EventEmitter {
+  private items: Array&lt;{ name: string; price: number }&gt; = [];
+
+  addItem(name: string, price: number): void {
+    this.items.push({ name, price });
+    this.emit("itemAdded", { name, price });
+    this.emit("totalChanged", this.getTotal());
+  }
+
+  getTotal(): number {
+    return this.items.reduce((sum, item) => sum + item.price, 0);
+  }
+}
+
+const cart = new ShoppingCart();
+cart.on("itemAdded", (item) => console.log(`추가됨: ${item.name}`));
+cart.on("totalChanged", (total) => console.log(`합계: ${total}원`));
+cart.addItem("TypeScript 책", 35000);
+        </code></pre>
+      </section>
+
+      <!-- Slide 16: Summary -->
+      <section>
+        <h2>Chapter 5 요약</h2>
+        <div class="key-point">
+          <h3>핵심 정리</h3>
+          <ul>
+            <li class="fragment"><strong>클래스 기본</strong>: 프로퍼티 선언 필수, 생성자에서 초기화</li>
+            <li class="fragment"><strong>접근 제한자</strong>: <code>public</code> / <code>protected</code> / <code>private</code>로 캡슐화</li>
+            <li class="fragment"><strong>매개변수 프로퍼티</strong>: 생성자 매개변수에 제한자 = 자동 선언 + 할당</li>
+            <li class="fragment"><strong>Getter/Setter</strong>: 프로퍼티 접근 제어 및 유효성 검증</li>
+            <li class="fragment"><strong>static</strong>: 인스턴스 없이 클래스 레벨에서 접근</li>
+            <li class="fragment"><strong>abstract</strong>: 구현을 강제하는 틀 제공 (인스턴스화 불가)</li>
+            <li class="fragment"><strong>implements</strong>: 인터페이스 계약 이행</li>
+            <li class="fragment"><strong>this 타입</strong>: 메서드 체이닝, 믹스인 등 고급 패턴</li>
+          </ul>
+        </div>
+        <br>
+        <p class="fragment">
+          <a href="06-generics.html" style="color: var(--ts-blue);">
+            다음 챕터: Chapter 6 - 제네릭 &rarr;
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>

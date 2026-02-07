@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Chapter 10: 데코레이터 & 메타데이터 - TypeScript 완전 정복</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Slide 1: Title -->
+      <section>
+        <div class="chapter-title">
+          <div class="chapter-number">Chapter 10</div>
+          <h1>데코레이터 & 메타데이터</h1>
+          <p class="subtitle">선언적으로 코드에 기능을 추가하는 메타프로그래밍</p>
+          <br>
+          <p>
+            <span class="badge badge-blue">@Decorator</span>
+            <span class="badge badge-green">Class</span>
+            <span class="badge badge-orange">Method</span>
+            <span class="badge badge-red">Reflect</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 2: What are decorators -->
+      <section>
+        <h2>데코레이터란?</h2>
+        <p>클래스, 메서드, 프로퍼티 등에 <strong>선언적으로 부가 기능</strong>을 추가하는 특별한 함수</p>
+        <div class="fragment">
+          <pre><code class="language-typescript" data-trim>
+// @ 기호를 사용하여 선언 위에 붙입니다
+@sealed
+class BugReport {
+  @validate
+  title: string;
+
+  @log
+  getTitle(): string {
+    return this.title;
+  }
+}
+          </code></pre>
+        </div>
+        <div class="two-columns fragment">
+          <div class="key-point">
+            <h3>데코레이터가 해결하는 문제</h3>
+            <ul>
+              <li>횡단 관심사 (logging, validation)</li>
+              <li>보일러플레이트 코드 제거</li>
+              <li>선언적이고 읽기 쉬운 코드</li>
+            </ul>
+          </div>
+          <div class="key-point">
+            <h3>적용 가능한 대상</h3>
+            <ul>
+              <li>클래스 (Class)</li>
+              <li>메서드 (Method)</li>
+              <li>접근자 (Accessor)</li>
+              <li>프로퍼티 (Property)</li>
+              <li>매개변수 (Parameter)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 3: Enabling Decorators -->
+      <section>
+        <h2>데코레이터 활성화</h2>
+        <pre><code class="language-json" data-trim>
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2016",
+    "experimentalDecorators": true,   // 레거시 데코레이터 활성화
+    "emitDecoratorMetadata": true     // reflect-metadata 지원
+  }
+}
+        </code></pre>
+        <div class="warning fragment">
+          <strong>주의:</strong> <code>experimentalDecorators</code>는 TypeScript 고유의 레거시 데코레이터입니다. TC39 Stage 3 표준 데코레이터와는 다른 스펙입니다.
+        </div>
+        <div class="fragment">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>레거시 (experimental)</th>
+                <th>TC39 Stage 3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>설정</td>
+                <td><code>experimentalDecorators: true</code></td>
+                <td>TS 5.0+, 설정 불필요</td>
+              </tr>
+              <tr>
+                <td>사용처</td>
+                <td>Angular, NestJS, TypeORM</td>
+                <td>신규 프로젝트 권장</td>
+              </tr>
+              <tr>
+                <td>상태</td>
+                <td>안정적이지만 비표준</td>
+                <td>ECMAScript 표준 진행 중</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Slide 4: Class Decorators -->
+      <section>
+        <h2>클래스 데코레이터</h2>
+        <p>클래스 생성자(constructor)를 인자로 받는 함수</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 클래스를 봉인하여 프로퍼티 추가/삭제 방지
+function sealed(constructor: Function) {
+  Object.seal(constructor);
+  Object.seal(constructor.prototype);
+}
+
+@sealed
+class Greeter {
+  greeting: string;
+  constructor(message: string) {
+    this.greeting = message;
+  }
+  greet() {
+    return `Hello, ${this.greeting}`;
+  }
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 클래스를 확장하는 데코레이터
+function withTimestamp&lt;T extends { new (...args: any[]): {} }&gt;(
+  constructor: T
+) {
+  return class extends constructor {
+    createdAt = new Date();
+    updatedAt = new Date();
+  };
+}
+
+@withTimestamp
+class Document {
+  title: string;
+  constructor(title: string) {
+    this.title = title;
+  }
+}
+
+const doc = new Document('My Doc');
+console.log((doc as any).createdAt); // Date 객체 출력
+        </code></pre>
+      </section>
+
+      <!-- Slide 5: Method Decorators -->
+      <section>
+        <h2>메서드 데코레이터</h2>
+        <p>3개의 매개변수: <code>target</code>, <code>propertyKey</code>, <code>descriptor</code></p>
+        <pre><code class="language-typescript" data-trim>
+function log(
+  target: any,                          // 클래스 프로토타입 또는 생성자
+  propertyKey: string,                  // 메서드 이름
+  descriptor: PropertyDescriptor        // 프로퍼티 디스크립터
+) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function (...args: any[]) {
+    console.log(`[LOG] ${propertyKey} 호출됨, 인자:`, args);
+    const result = originalMethod.apply(this, args);
+    console.log(`[LOG] ${propertyKey} 반환값:`, result);
+    return result;
+  };
+
+  return descriptor;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class Calculator {
+  @log
+  add(a: number, b: number): number {
+    return a + b;
+  }
+
+  @log
+  multiply(a: number, b: number): number {
+    return a * b;
+  }
+}
+
+const calc = new Calculator();
+calc.add(2, 3);
+// [LOG] add 호출됨, 인자: [2, 3]
+// [LOG] add 반환값: 5
+        </code></pre>
+      </section>
+
+      <!-- Slide 6: Property Decorators -->
+      <section>
+        <h2>프로퍼티 데코레이터</h2>
+        <p>2개의 매개변수: <code>target</code>, <code>propertyKey</code> (descriptor 없음)</p>
+        <pre><code class="language-typescript" data-trim>
+function minLength(min: number) {
+  return function (target: any, propertyKey: string) {
+    let value: string;
+
+    const getter = function () {
+      return value;
+    };
+
+    const setter = function (newVal: string) {
+      if (newVal.length < min) {
+        throw new Error(
+          `${propertyKey}은(는) 최소 ${min}자 이상이어야 합니다.`
+        );
+      }
+      value = newVal;
+    };
+
+    Object.defineProperty(target, propertyKey, {
+      get: getter,
+      set: setter,
+      enumerable: true,
+      configurable: true,
+    });
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class User {
+  @minLength(2)
+  name: string;
+
+  @minLength(8)
+  password: string;
+
+  constructor(name: string, password: string) {
+    this.name = name;
+    this.password = password;
+  }
+}
+
+const user = new User('김철수', 'secure1234'); // OK
+const bad = new User('A', '1234');
+// Error: name은(는) 최소 2자 이상이어야 합니다.
+        </code></pre>
+      </section>
+
+      <!-- Slide 7: Parameter Decorators -->
+      <section>
+        <h2>매개변수 데코레이터</h2>
+        <p>3개의 매개변수: <code>target</code>, <code>methodName</code>, <code>parameterIndex</code></p>
+        <pre><code class="language-typescript" data-trim>
+const requiredParams: Map&lt;string, number[]&gt; = new Map();
+
+// 매개변수를 "필수"로 표시
+function required(
+  target: any,
+  methodName: string,
+  parameterIndex: number
+) {
+  const existingParams = requiredParams.get(methodName) || [];
+  existingParams.push(parameterIndex);
+  requiredParams.set(methodName, existingParams);
+}
+
+// 필수 매개변수를 검증하는 메서드 데코레이터
+function validate(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) {
+  const original = descriptor.value;
+  descriptor.value = function (...args: any[]) {
+    const params = requiredParams.get(propertyKey) || [];
+    for (const index of params) {
+      if (args[index] === undefined || args[index] === null) {
+        throw new Error(`매개변수 ${index}번은 필수입니다.`);
+      }
+    }
+    return original.apply(this, args);
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class UserService {
+  @validate
+  createUser(@required name: string, @required email: string) {
+    return { name, email };
+  }
+}
+
+const service = new UserService();
+service.createUser('홍길동', 'hong@test.com'); // OK
+service.createUser(null as any, 'test@test.com');
+// Error: 매개변수 0번은 필수입니다.
+        </code></pre>
+      </section>
+
+      <!-- Slide 8: Decorator Factories -->
+      <section>
+        <h2>데코레이터 팩토리</h2>
+        <p>매개변수를 받아 데코레이터를 반환하는 <strong>고차 함수</strong></p>
+        <pre><code class="language-typescript" data-trim>
+// 데코레이터 팩토리: 인자를 받는 데코레이터
+function Component(options: { selector: string; template: string }) {
+  return function &lt;T extends { new (...args: any[]): {} }&gt;(constructor: T) {
+    return class extends constructor {
+      selector = options.selector;
+      template = options.template;
+    };
+  };
+}
+
+function Inject(serviceId: string) {
+  return function (target: any, propertyKey: string) {
+    // 의존성 주입 로직
+    console.log(`${propertyKey}에 ${serviceId} 주입`);
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// Angular 스타일 사용법
+@Component({
+  selector: 'app-header',
+  template: '&lt;header&gt;&lt;h1&gt;{{ title }}&lt;/h1&gt;&lt;/header&gt;'
+})
+class HeaderComponent {
+  @Inject('LoggerService')
+  logger: any;
+
+  title = 'My App';
+}
+        </code></pre>
+        <div class="tip fragment">
+          <strong>패턴:</strong> <code>@decorator</code> vs <code>@factory(args)</code> - 팩토리는 괄호 <code>()</code>와 함께 호출됩니다.
+        </div>
+      </section>
+
+      <!-- Slide 9: Decorator Composition -->
+      <section>
+        <h2>데코레이터 합성 (Composition)</h2>
+        <p>여러 데코레이터를 동시에 적용할 수 있습니다.</p>
+        <pre><code class="language-typescript" data-trim>
+function first() {
+  console.log('first(): 팩토리 평가');
+  return function (target: any, key: string, desc: PropertyDescriptor) {
+    console.log('first(): 데코레이터 실행');
+  };
+}
+
+function second() {
+  console.log('second(): 팩토리 평가');
+  return function (target: any, key: string, desc: PropertyDescriptor) {
+    console.log('second(): 데코레이터 실행');
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class Example {
+  @first()
+  @second()
+  method() {}
+}
+
+// 출력 순서:
+// first(): 팩토리 평가       (위 -> 아래)
+// second(): 팩토리 평가      (위 -> 아래)
+// second(): 데코레이터 실행  (아래 -> 위!)
+// first(): 데코레이터 실행   (아래 -> 위!)
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>실행 순서</h3>
+          <p>팩토리 평가: <strong>위에서 아래로</strong> / 데코레이터 실행: <strong>아래에서 위로</strong> (수학의 함수 합성과 동일: f(g(x)))</p>
+        </div>
+      </section>
+
+      <!-- Slide 10: reflect-metadata -->
+      <section>
+        <h2>reflect-metadata</h2>
+        <p>런타임에 타입 메타데이터를 저장하고 조회하는 라이브러리</p>
+        <pre class="fragment"><code class="language-bash" data-trim>
+npm install reflect-metadata
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+import 'reflect-metadata';
+
+// 커스텀 메타데이터 저장
+function Role(role: string) {
+  return Reflect.metadata('role', role);
+}
+
+function ApiEndpoint(path: string) {
+  return Reflect.metadata('api:path', path);
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+@Role('admin')
+class AdminController {
+  @ApiEndpoint('/users')
+  getUsers() { return []; }
+
+  @ApiEndpoint('/users/:id')
+  getUser(id: string) { return {}; }
+}
+
+// 메타데이터 조회
+const role = Reflect.getMetadata('role', AdminController);
+console.log(role); // 'admin'
+
+const path = Reflect.getMetadata(
+  'api:path', AdminController.prototype, 'getUsers'
+);
+console.log(path); // '/users'
+        </code></pre>
+        <div class="tip fragment">
+          <strong>활용:</strong> NestJS, TypeORM, InversifyJS 등이 이 패턴으로 DI, 라우팅, ORM 매핑을 구현합니다.
+        </div>
+      </section>
+
+      <!-- Slide 11: Real-world Logging Pattern -->
+      <section>
+        <h2>실전 패턴: 로깅 & 성능 측정</h2>
+        <pre><code class="language-typescript" data-trim>
+function measure(label?: string) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    const original = descriptor.value;
+    const name = label || propertyKey;
+
+    descriptor.value = async function (...args: any[]) {
+      const start = performance.now();
+      try {
+        const result = await original.apply(this, args);
+        const elapsed = (performance.now() - start).toFixed(2);
+        console.log(`[PERF] ${name}: ${elapsed}ms`);
+        return result;
+      } catch (error) {
+        const elapsed = (performance.now() - start).toFixed(2);
+        console.error(`[PERF] ${name}: FAILED after ${elapsed}ms`);
+        throw error;
+      }
+    };
+    return descriptor;
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class DataService {
+  @measure('사용자 목록 조회')
+  async fetchUsers(): Promise&lt;User[]&gt; {
+    const res = await fetch('/api/users');
+    return res.json();
+  }
+
+  @measure()
+  async processData(data: any[]): Promise&lt;any[]&gt; {
+    // 복잡한 데이터 처리...
+    return data.map(item => ({ ...item, processed: true }));
+  }
+}
+// [PERF] 사용자 목록 조회: 142.35ms
+// [PERF] processData: 3.21ms
+        </code></pre>
+      </section>
+
+      <!-- Slide 12: Real-world Validation & DI -->
+      <section>
+        <h2>실전 패턴: 검증 & 의존성 주입</h2>
+        <pre><code class="language-typescript" data-trim>
+// 간단한 DI 컨테이너
+const container = new Map&lt;string, any&gt;();
+
+function Injectable(target: any) {
+  container.set(target.name, new target());
+}
+
+function Inject(token: string) {
+  return function (target: any, propertyKey: string) {
+    Object.defineProperty(target, propertyKey, {
+      get: () => container.get(token),
+      enumerable: true,
+    });
+  };
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+@Injectable
+class LoggerService {
+  log(message: string) {
+    console.log(`[${new Date().toISOString()}] ${message}`);
+  }
+}
+
+@Injectable
+class DatabaseService {
+  connect() { return 'Connected to DB'; }
+}
+
+class AppController {
+  @Inject('LoggerService')
+  private logger!: LoggerService;
+
+  @Inject('DatabaseService')
+  private db!: DatabaseService;
+
+  start() {
+    this.logger.log(this.db.connect());
+    // [2024-01-15T09:30:00.000Z] Connected to DB
+  }
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 13: TC39 Stage 3 Decorators -->
+      <section>
+        <h2>TC39 Stage 3 데코레이터 (새 표준)</h2>
+        <p>TypeScript 5.0+에서 지원하는 ECMAScript 표준 데코레이터</p>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+// 새 표준 - experimentalDecorators 없이 사용
+// tsconfig: "experimentalDecorators" 옵션 제거
+
+// context 객체를 두 번째 인자로 받음
+function logged&lt;This, Args extends any[], Return&gt;(
+  target: (this: This, ...args: Args) => Return,
+  context: ClassMethodDecoratorContext&lt;
+    This, (this: This, ...args: Args) => Return
+  &gt;
+) {
+  const methodName = String(context.name);
+
+  function replacementMethod(this: This, ...args: Args): Return {
+    console.log(`LOG: ${methodName} 호출`);
+    const result = target.call(this, ...args);
+    console.log(`LOG: ${methodName} 완료`);
+    return result;
+  }
+
+  return replacementMethod;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class Person {
+  name: string;
+  constructor(name: string) { this.name = name; }
+
+  @logged
+  greet() {
+    console.log(`안녕하세요, ${this.name}입니다.`);
+  }
+}
+
+new Person('홍길동').greet();
+// LOG: greet 호출
+// 안녕하세요, 홍길동입니다.
+// LOG: greet 완료
+        </code></pre>
+      </section>
+
+      <!-- Slide 14: TC39 Decorators - More Examples -->
+      <section>
+        <h2>TC39 데코레이터 - 추가 예제</h2>
+        <pre><code class="language-typescript" data-trim>
+// 클래스 데코레이터 (새 표준)
+function registerComponent(
+  target: typeof HTMLElement,
+  context: ClassDecoratorContext
+) {
+  context.addInitializer(function () {
+    console.log(`${String(context.name)} 컴포넌트 등록됨`);
+  });
+}
+
+// 접근자 데코레이터
+function bound&lt;This, Args extends any[], Return&gt;(
+  target: (this: This, ...args: Args) => Return,
+  context: ClassMethodDecoratorContext&lt;This&gt;
+) {
+  const methodName = String(context.name);
+  context.addInitializer(function (this: any) {
+    this[methodName] = this[methodName].bind(this);
+  });
+  return target;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-typescript" data-trim>
+class Button {
+  label = '클릭';
+
+  @bound
+  handleClick() {
+    console.log(`${this.label} 버튼 클릭됨`);
+  }
+}
+
+const btn = new Button();
+const handler = btn.handleClick;
+handler(); // "클릭 버튼 클릭됨" - this가 바인딩됨!
+        </code></pre>
+        <div class="key-point fragment">
+          <h3>새 표준의 장점</h3>
+          <p><code>context</code> 객체로 메타데이터, 초기화 훅, 접근 제어 등 더 강력한 기능을 표준화된 방식으로 제공합니다.</p>
+        </div>
+      </section>
+
+      <!-- Slide 15: Summary -->
+      <section>
+        <h2>Chapter 10 요약</h2>
+        <div class="key-point">
+          <h3>데코레이터 종류와 매개변수</h3>
+          <table class="compare-table" style="font-size: 0.9em;">
+            <thead>
+              <tr>
+                <th>데코레이터</th>
+                <th>인자</th>
+                <th>활용</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment">
+                <td><span class="badge badge-blue">Class</span></td>
+                <td>constructor</td>
+                <td>봉인, 확장, 등록</td>
+              </tr>
+              <tr class="fragment">
+                <td><span class="badge badge-green">Method</span></td>
+                <td>target, key, descriptor</td>
+                <td>로깅, 캐싱, 권한 체크</td>
+              </tr>
+              <tr class="fragment">
+                <td><span class="badge badge-orange">Property</span></td>
+                <td>target, key</td>
+                <td>검증, 기본값, 직렬화</td>
+              </tr>
+              <tr class="fragment">
+                <td><span class="badge badge-red">Parameter</span></td>
+                <td>target, method, index</td>
+                <td>필수값 체크, DI</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tip fragment">
+          <strong>실무 가이드:</strong> Angular/NestJS 프로젝트 = <code>experimentalDecorators</code>, 신규 라이브러리 = TC39 Stage 3 데코레이터 사용을 고려하세요.
+        </div>
+        <br>
+        <p class="fragment">
+          <a href="11-async.html" style="color: var(--ts-blue);">
+            다음 챕터: Chapter 11 - 비동기 프로그래밍 &rarr;
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      plugins: [RevealHighlight],
+      transition: 'slide',
+      height: 700,
+      center: false,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      keyboard: {
+        38: null,
+        40: null
+      },
+      mouseWheel: false
+    });
+
+    // 위/아래 화살표 → 슬라이드 내 스크롤
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 38 || e.keyCode === 40) {
+        var slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+        var amount = 80;
+        if (e.keyCode === 38) {
+          slide.scrollTop -= amount;
+        } else {
+          slide.scrollTop += amount;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>
