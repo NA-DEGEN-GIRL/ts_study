@@ -71,7 +71,7 @@
 }
 
 .reveal pre {
-  width: 100%;
+  width: auto;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   border-radius: 8px;
 }
@@ -144,11 +144,24 @@
 /* Two column layout */
 .two-columns {
   display: flex;
-  gap: 30px;
+  gap: 20px;
   align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 }
 .two-columns > div {
   flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+.two-columns pre {
+  width: auto !important;
+  overflow-x: auto;
+}
+.two-columns > div > code,
+.two-columns p code,
+.two-columns li code {
+  word-break: break-all;
 }
 
 /* Badge / tag */
