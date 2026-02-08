@@ -14,7 +14,7 @@
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section class="chapter-title" data-narration="챕터 5, 클래스입니다. 타입스크립트에서 객체 지향 프로그래밍의 핵심인 클래스를 배워보겠습니다.">
+      <section class="chapter-title" data-narration="챕터 5, 클래스입니다. 이 챕터에서는 타입스크립트에서 객체 지향 프로그래밍의 핵심인 클래스의 기본 구조, 접근 제어자를 통한 캡슐화, 추상 클래스와 인터페이스 구현을 학습합니다. 클래스는 관련된 데이터와 로직을 하나의 단위로 묶어 코드를 체계적으로 관리하는 데 필수적입니다. React 컴포넌트, 서비스 계층, 디자인 패턴 등 실전에서 폭넓게 활용됩니다.">
         <div class="chapter-number">Chapter 5</div>
         <h1>클래스 (Class)</h1>
         <p class="subtitle">TypeScript의 객체지향 프로그래밍</p>
@@ -28,7 +28,7 @@
       </section>
 
       <!-- Slide 2: Class Basics -->
-      <section data-narration="클래스는 객체를 생성하기 위한 설계도입니다. 타입스크립트에서는 속성에 타입을 지정하고, 생성자에서 초기화하는 구조를 갖습니다.">
+      <section data-narration="클래스는 객체를 생성하기 위한 설계도로, 프로퍼티와 생성자, 메서드로 구성됩니다. 이 코드에서 User 클래스는 name, email, age 세 가지 프로퍼티를 문자열과 숫자 타입으로 선언하고, 생성자에서 전달받은 값으로 초기화합니다. greet 메서드는 인사 문자열을 반환합니다. new 키워드로 인스턴스를 생성하면 생성자가 자동 호출되어 실제 객체가 만들어집니다. 타입스크립트에서는 자바스크립트와 달리 프로퍼티를 반드시 미리 선언해야 합니다.">
         <h2>클래스 기본 구조</h2>
         <p>프로퍼티, 생성자 (Constructor), 메서드로 구성됩니다</p>
         <div class="tip" style="margin-bottom: 0.5em;">
@@ -64,7 +64,7 @@ console.log(user.greet()); // "안녕하세요, 홍길동입니다!"
       </section>
 
       <!-- Slide 3: Access Modifiers -->
-      <section data-narration="접근 제어자에는 public, private, protected가 있습니다. public은 어디서나 접근 가능하고, private는 클래스 내부에서만, protected는 상속받은 클래스에서도 접근할 수 있습니다.">
+      <section data-narration="접근 제어자는 클래스 멤버의 접근 범위를 제한하는 키워드입니다. public은 어디서나 접근 가능하고 기본값이며, protected는 해당 클래스와 이를 상속받은 자식 클래스에서만 접근할 수 있고, private는 오직 해당 클래스 내부에서만 접근 가능합니다. 이 코드의 BankAccount에서 owner는 public이라 외부에서 읽을 수 있지만, balance는 protected라 자식 클래스까지만, pin은 private라 BankAccount 내부에서만 사용할 수 있습니다. 이렇게 접근을 제한하면 내부 구현을 보호하고 의도치 않은 변경을 방지할 수 있습니다.">
         <h2>접근 제어자 (Access Modifier)</h2>
         <table class="compare-table">
           <thead>
@@ -112,7 +112,7 @@ class BankAccount {
       </section>
 
       <!-- Slide 4: Access Modifiers in Action -->
-      <section data-narration="접근 제어자를 실전에서 활용하는 방법을 살펴봅시다. 은행 계좌 클래스를 예로 들어 잔액을 private로 보호하고, 메서드를 통해서만 접근하는 패턴입니다.">
+      <section data-narration="접근 제어자의 실전 활용을 은행 계좌 예제로 살펴봅시다. BankAccount 클래스에서 verifyPin은 private 메서드로 외부에서 직접 호출할 수 없고, withdraw라는 public 메서드 내부에서만 사용됩니다. withdraw는 핀 검증과 잔액 확인을 거쳐 출금을 처리합니다. SavingsAccount는 BankAccount를 상속받아 getBalance에서 protected인 balance에 접근할 수 있지만, private인 pin에는 접근할 수 없습니다. 외부 코드에서는 public인 owner만 접근 가능하고 balance와 pin은 모두 차단됩니다.">
         <h2>접근 제어자 실전 예제</h2>
         <pre><code class="typescript" data-trim data-noescape>
 class BankAccount {
@@ -156,7 +156,7 @@ account.owner;              // OK: public이므로 외부에서 접근 가능
       </section>
 
       <!-- Slide 5: readonly -->
-      <section data-narration="readonly 키워드를 클래스 속성에 사용하면 생성자에서만 값을 설정할 수 있고, 이후에는 변경이 불가능합니다.">
+      <section data-narration="readonly 키워드를 클래스 프로퍼티에 사용하면 생성자에서만 값을 설정할 수 있고, 이후에는 어디서도 변경이 불가능합니다. 이 코드에서 Config 클래스의 apiUrl, maxRetries, createdAt은 모두 readonly이므로 생성자에서 초기화한 뒤에는 수정하려고 하면 컴파일 에러가 발생합니다. 읽기는 자유롭게 가능하지만 쓰기는 차단됩니다. const는 변수 자체의 재할당을 막고, readonly는 객체 프로퍼티의 변경을 막는다는 차이가 있습니다. API URL이나 설정값처럼 절대 변경되면 안 되는 값을 보호할 때 유용합니다.">
         <h2><code>readonly</code> 프로퍼티</h2>
         <p>생성 시에만 값을 할당하고, 이후 변경 불가 (읽기 전용)</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -188,7 +188,7 @@ console.log(config.apiUrl);     // OK: 읽기는 가능
       </section>
 
       <!-- Slide 6: Parameter Properties -->
-      <section data-narration="매개변수 프로퍼티는 생성자의 매개변수에 접근 제어자를 붙여 속성 선언과 초기화를 동시에 하는 축약 문법입니다. 코드가 훨씬 간결해집니다.">
+      <section data-narration="매개변수 프로퍼티는 생성자의 매개변수에 접근 제어자나 readonly를 붙여 속성 선언과 초기화를 동시에 처리하는 축약 문법입니다. 왼쪽의 기존 방식에서는 프로퍼티를 먼저 선언하고 생성자에서 하나씩 할당해야 하지만, 오른쪽의 매개변수 프로퍼티 방식에서는 생성자 매개변수에 public, private, readonly를 붙이는 것만으로 자동 선언과 할당이 이루어집니다. 두 코드는 완전히 동일한 결과를 만들며, 매개변수 프로퍼티를 사용하면 보일러플레이트 코드를 크게 줄일 수 있습니다.">
         <h2>매개변수 프로퍼티 (Parameter Properties)</h2>
         <p>생성자 매개변수에 접근 제한자를 붙이면 자동으로 프로퍼티 선언 + 할당!</p>
         <div class="two-columns">
@@ -234,7 +234,7 @@ class User {
       </section>
 
       <!-- Slide 7: Getters and Setters -->
-      <section data-narration="게터와 세터를 사용하면 속성에 접근할 때 추가 로직을 실행할 수 있습니다. 값 검증이나 계산된 속성을 구현할 때 유용합니다.">
+      <section data-narration="게터와 세터는 프로퍼티에 접근하거나 값을 설정할 때 추가 로직을 실행할 수 있게 해주는 특별한 메서드입니다. 이 코드에서 Temperature 클래스의 fahrenheit 게터는 내부의 섭씨 값을 화씨로 변환하여 반환하는 계산된 속성이며, celsius 세터는 절대영도 이하인지 검증한 후에만 값을 할당합니다. 외부에서는 temp.fahrenheit나 temp.celsius처럼 일반 프로퍼티처럼 사용하지만, 내부적으로는 함수가 실행됩니다. 게터만 있고 세터가 없으면 자동으로 읽기 전용이 됩니다.">
         <h2>게터/세터 (Getter/Setter)</h2>
         <p>프로퍼티 접근을 제어하고 유효성 검증 로직을 추가</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -274,7 +274,7 @@ temp.celsius = 0;              // setter 호출
       </section>
 
       <!-- Slide 8: Static Members -->
-      <section data-narration="static 키워드를 사용하면 인스턴스가 아닌 클래스 자체에 속하는 멤버를 정의할 수 있습니다. 유틸리티 함수나 공유 상수에 사용됩니다.">
+      <section data-narration="static 키워드로 정의된 멤버는 인스턴스가 아닌 클래스 자체에 속하므로, new 없이 클래스 이름으로 직접 접근합니다. MathUtils 클래스의 PI 상수와 circleArea, clamp 메서드는 모두 static이어서 MathUtils.PI처럼 바로 사용합니다. 싱글톤 패턴에서는 private 생성자로 외부 생성을 막고, static getInstance 메서드로 유일한 인스턴스를 반환합니다. db1과 db2가 같은 객체임을 확인하는 것처럼, 프로그램 전체에서 하나의 인스턴스만 존재하도록 보장합니다. 유틸리티 함수 모음이나 공유 상수를 정의할 때 주로 사용됩니다.">
         <h2>정적 멤버 (Static Member)</h2>
         <p>인스턴스가 아닌 <strong>클래스 자체</strong>에 속하는 멤버</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -319,7 +319,7 @@ console.log(db1 === db2); // true (항상 같은 인스턴스!)
       </section>
 
       <!-- Slide 9: Abstract Classes -->
-      <section data-narration="추상 클래스는 직접 인스턴스를 만들 수 없고, 반드시 상속하여 추상 메서드를 구현해야 합니다. 공통 기능은 추상 클래스에서 구현하고, 세부 사항은 하위 클래스에 위임합니다.">
+      <section data-narration="추상 클래스는 abstract 키워드로 선언하며, 직접 인스턴스를 만들 수 없고 반드시 상속하여 추상 메서드를 구현해야 합니다. Shape 추상 클래스는 getArea와 getPerimeter라는 추상 메서드의 시그니처만 정의하고, describe라는 일반 메서드에서 공통 로직을 제공합니다. Circle과 Rectangle은 Shape를 상속받아 각각의 면적과 둘레 계산을 구현합니다. 추상 메서드를 하나라도 구현하지 않으면 컴파일 에러가 발생하므로, 공통 틀은 제공하면서 세부 구현을 하위 클래스에 위임하는 설계에 적합합니다.">
         <h2>추상 클래스 (Abstract Class)</h2>
         <p>직접 인스턴스화할 수 없고, 반드시 상속해서 구현 (Implements)해야 하는 클래스</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -368,7 +368,7 @@ console.log(circle.describe()); // "파랑 도형 (면적: 78.54)"
       </section>
 
       <!-- Slide 10: Abstract vs Interface -->
-      <section data-narration="추상 클래스는 구현 코드를 포함할 수 있지만, 인터페이스는 형태만 정의합니다. 추상 클래스는 단일 상속만 가능하고, 인터페이스는 여러 개를 동시에 구현할 수 있습니다.">
+      <section data-narration="추상 클래스와 인터페이스의 핵심 차이를 비교합니다. 추상 클래스는 일반 메서드로 구현 코드를 포함할 수 있지만 인터페이스는 형태만 정의합니다. 추상 클래스는 단일 상속만 가능하지만 인터페이스는 여러 개를 동시에 구현할 수 있습니다. 추상 클래스는 생성자와 접근 제한자를 사용할 수 있고 자바스크립트로 컴파일되어 런타임에 존재하지만, 인터페이스는 컴파일 시 완전히 제거됩니다. 공통 로직을 공유해야 하면 추상 클래스, 순수하게 계약만 정의하면 인터페이스를 선택하는 것이 기본 원칙입니다.">
         <h2>추상 클래스 vs 인터페이스 (Interface)</h2>
         <table class="compare-table">
           <thead>
@@ -418,7 +418,7 @@ console.log(circle.describe()); // "파랑 도형 (면적: 78.54)"
       </section>
 
       <!-- Slide 11: Implementing Interfaces -->
-      <section data-narration="implements 키워드를 사용하면 클래스가 특정 인터페이스를 반드시 구현하도록 강제할 수 있습니다. 여러 인터페이스를 동시에 구현하는 것도 가능합니다.">
+      <section data-narration="implements 키워드를 사용하면 클래스가 특정 인터페이스의 계약을 반드시 이행하도록 강제합니다. 이 코드에서 UserProfile 클래스는 Serializable과 Loggable 두 인터페이스를 동시에 구현하므로, serialize, deserialize, log 메서드를 모두 갖추어야 합니다. 하나라도 빠지면 컴파일 에러가 발생합니다. 인터페이스 타입으로 변수를 선언하면 다형성을 활용할 수 있어, saveToFile 함수처럼 Serializable을 구현한 어떤 클래스든 받아들이는 유연한 코드를 작성할 수 있습니다.">
         <h2>인터페이스 구현 (<code>implements</code>)</h2>
         <p>클래스가 특정 인터페이스의 계약을 이행하도록 강제합니다. "이 클래스는 반드시 이 기능들을 가지고 있어야 한다"는 약속입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -465,7 +465,7 @@ function saveToFile(item: Serializable): void {
       </section>
 
       <!-- Slide 12: Class Expressions -->
-      <section data-narration="클래스도 변수에 할당할 수 있는 표현식으로 사용할 수 있습니다. 팩토리 패턴이나 즉석에서 클래스를 생성할 때 활용됩니다.">
+      <section data-narration="클래스도 함수 표현식처럼 변수에 할당할 수 있는 표현식으로 사용할 수 있습니다. 이 코드에서 Animal 변수에 AnimalClass라는 이름의 클래스를 할당하지만, 외부에서는 Animal로만 접근 가능하고 AnimalClass 이름은 사용할 수 없습니다. 팩토리 패턴에서는 createLogger 함수가 prefix를 클로저로 캡처한 익명 클래스를 반환하여, AppLogger와 DbLogger처럼 서로 다른 설정의 로거 클래스를 동적으로 생성합니다. 런타임에 조건에 따라 다른 클래스를 생성하거나 플러그인 시스템을 구현할 때 유용합니다.">
         <h2>클래스 표현식 (Class Expressions)</h2>
         <p>함수 표현식처럼 클래스도 표현식으로 사용 가능</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -500,7 +500,7 @@ logger.log("서버 시작됨"); // [APP] 서버 시작됨
       </section>
 
       <!-- Slide 13: this Type -->
-      <section data-narration="this 타입을 활용하면 메서드 체이닝이 가능한 클래스를 만들 수 있습니다. 상속받은 클래스에서도 올바른 타입이 유지됩니다.">
+      <section data-narration="this를 반환 타입으로 사용하면 메서드 체이닝이 가능한 클래스를 만들 수 있습니다. QueryBuilder 클래스의 where와 orderBy 메서드는 this를 반환하므로, 점으로 연결하여 연속 호출이 가능합니다. 핵심은 AdvancedQueryBuilder처럼 자식 클래스에서도 체이닝이 올바르게 유지된다는 것입니다. where를 호출해도 반환 타입이 AdvancedQueryBuilder로 유지되어, 이어서 limit 같은 자식 클래스 전용 메서드를 호출할 수 있습니다. ORM 쿼리 빌더나 설정 객체 빌더 패턴에서 자주 활용되는 실전 기법입니다.">
         <h2>this 타입</h2>
         <p><code>this</code>를 타입으로 사용하면 메서드 체이닝에 유용</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -550,7 +550,7 @@ const query = new AdvancedQueryBuilder()
       </section>
 
       <!-- Slide 14: Mixins Pattern -->
-      <section data-narration="믹스인은 여러 클래스의 기능을 조합하는 패턴입니다. 타입스크립트에서는 함수를 사용하여 클래스에 기능을 추가하는 방식으로 구현합니다.">
+      <section data-narration="믹스인은 다중 상속이 불가능한 자바스크립트에서 여러 클래스의 기능을 조합하는 패턴입니다. Timestamped 함수는 기존 클래스를 받아 createdAt, updatedAt, touch 기능을 추가한 새 클래스를 반환하고, SoftDeletable 함수는 isDeleted, deletedAt, softDelete 기능을 추가합니다. EnhancedUser는 User에 두 믹스인을 순차적으로 적용하여, 기본 사용자 기능에 타임스탬프와 소프트 삭제 기능을 모두 갖춘 클래스를 만듭니다. 이처럼 필요한 기능을 레고 블록처럼 조합하여 유연한 클래스 설계가 가능합니다.">
         <h2>믹스인 (Mixin) 패턴</h2>
         <p>다중 상속 (Multiple Inheritance)의 대안 - 여러 클래스의 기능을 조합</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -598,7 +598,7 @@ console.log(user.createdAt, user.isDeleted); // 모든 기능 사용 가능
       </section>
 
       <!-- Slide 15: Real-World Example -->
-      <section data-narration="이벤트 시스템을 클래스로 구현해 봅시다. 이벤트 등록, 발생, 해제 기능을 타입 안전하게 구현하는 실전 패턴입니다.">
+      <section data-narration="이벤트 시스템을 클래스로 구현하는 실전 예제입니다. EventEmitter 추상 클래스는 이벤트 이름과 핸들러 배열을 Map으로 관리하며, on으로 이벤트를 등록하고 emit으로 발생시키고 off로 해제합니다. emit은 protected이므로 자식 클래스에서만 호출 가능합니다. ShoppingCart는 이를 상속받아 addItem에서 아이템 추가 시 itemAdded와 totalChanged 이벤트를 발생시킵니다. 외부에서 cart.on으로 이벤트를 구독하면, 아이템이 추가될 때마다 등록된 핸들러가 자동 실행됩니다. 옵저버 패턴의 전형적인 구현입니다.">
         <h2>실전 예제: 이벤트 시스템</h2>
         <pre><code class="typescript" data-trim data-noescape>
 type EventHandler&lt;T = any&gt; = (data: T) => void;
@@ -644,7 +644,7 @@ cart.addItem("TypeScript 책", 35000);
       </section>
 
       <!-- Slide 16: Summary -->
-      <section data-narration="챕터 5를 마치겠습니다. 클래스의 기본 구조부터 접근 제어자, 추상 클래스, 인터페이스 구현, 그리고 믹스인까지 객체 지향 프로그래밍의 핵심을 학습했습니다.">
+      <section data-narration="챕터 5를 마치겠습니다. 가장 중요한 포인트는 접근 제어자로 캡슐화를 구현하여 내부 구현을 보호하는 것과, 추상 클래스와 인터페이스를 적절히 선택하여 확장 가능한 설계를 만드는 것입니다. 매개변수 프로퍼티로 보일러플레이트를 줄이고, 게터와 세터로 프로퍼티 접근을 제어하세요. 다음 챕터에서는 타입을 매개변수처럼 다루는 제네릭을 학습하여, 재사용 가능하면서도 타입 안전한 함수와 클래스를 만드는 방법을 다룹니다.">
         <h2>Chapter 5 요약</h2>
         <div class="key-point">
           <h3>핵심 정리</h3>

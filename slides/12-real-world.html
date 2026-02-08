@@ -14,7 +14,7 @@
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section data-narration="챕터 12, 실전 패턴입니다. 실무에서 바로 활용할 수 있는 타입스크립트 디자인 패턴을 배워보겠습니다.">
+      <section data-narration="챕터 12, 실전 패턴입니다. 이 챕터에서는 타입 안전한 API 클라이언트, 빌더 패턴, 상태 머신, 이벤트 이미터, 리포지토리 패턴, Result 타입, 브랜디드 타입 등 프로덕션 레벨의 디자인 패턴을 학습합니다. 챕터 1부터 11까지 배운 타입 시스템 지식을 실전 설계에 통합하는 마무리 챕터입니다. 처음에는 어려울 수 있으니 기초를 충분히 익힌 뒤 다시 돌아오셔도 좋습니다.">
         <div class="chapter-title">
           <div class="chapter-number">Chapter 12</div>
           <h1>실전 패턴</h1>
@@ -33,7 +33,7 @@
       </section>
 
       <!-- Slide 2: Project Setup Best Practices -->
-      <section data-narration="실전 프로젝트의 tsconfig 설정과 디렉토리 구조를 어떻게 구성하는 것이 좋은지 모범 사례를 알아봅시다.">
+      <section data-narration="실전 프로젝트의 tsconfig 설정 모범 사례를 알아봅시다. 이 코드에서 strict를 true로 설정하면 strictNullChecks, noImplicitAny 등 7개 엄격 옵션이 한 번에 활성화됩니다. noUncheckedIndexedAccess는 배열이나 객체 접근 시 undefined 가능성을 체크하고, paths 설정으로 경로 별칭을 지정하여 깊은 상대 경로 대신 앳 기호로 import할 수 있습니다. 새 프로젝트는 반드시 strict true로 시작하세요.">
         <h2>프로젝트 설정 Best Practices</h2>
         <p>엄격한 <code>tsconfig.json</code>으로 시작하세요</p>
         <pre><code class="language-json" data-trim>
@@ -81,7 +81,7 @@
       </section>
 
       <!-- Slide 3: Type-safe API Client -->
-      <section data-narration="API 클라이언트를 타입 안전하게 설계하는 방법입니다. 엔드포인트별로 요청과 응답 타입을 정의하여 컴파일 타임에 검증합니다.">
+      <section data-narration="API 클라이언트를 타입 안전하게 설계하는 방법입니다. 이 코드에서 ApiSchema 인터페이스는 각 URL 경로별로 지원하는 HTTP 메서드와 요청, 응답 타입을 한 곳에 정의합니다. ApiMethod 타입은 특정 경로에서 사용 가능한 메서드를 추출하고, ApiResponse 타입은 infer 키워드로 응답 타입을 자동으로 추출합니다. 스키마 하나로 클라이언트 코드 전체의 타입이 강제되는 강력한 패턴입니다.">
         <h2>타입 안전한 API 클라이언트</h2>
         <pre><code class="language-typescript" data-trim style="font-size: 0.78em;">
 // API 엔드포인트 스키마(구조)를 타입으로 미리 정의
@@ -118,7 +118,7 @@ type ApiResponse&lt;
       </section>
 
       <!-- Slide 4: Type-safe API Client - Usage -->
-      <section data-narration="앞서 정의한 API 클라이언트를 실제로 구현하고 사용하는 방법을 살펴봅시다. 제네릭을 활용하여 엔드포인트마다 정확한 타입이 보장됩니다.">
+      <section data-narration="앞서 정의한 ApiSchema를 기반으로 TypedApiClient를 구현합니다. 이 코드에서 get 메서드는 Path 제네릭으로 경로를 받으면 해당 경로의 쿼리 파라미터 타입과 응답 타입이 자동으로 결정됩니다. post 메서드도 경로에 따라 요청 본문 타입이 강제됩니다. 사용 시 api.get에 슬래시 users를 전달하면 반환값이 User 배열로 추론되고, 자동 완성까지 지원됩니다. 엔드포인트를 추가할 때 스키마만 수정하면 됩니다.">
         <h2>API 클라이언트 - 구현과 사용</h2>
         <pre><code class="language-typescript" data-trim>
 class TypedApiClient {
@@ -171,7 +171,7 @@ const newPost = await api.post('/posts', {
       </section>
 
       <!-- Slide 5: Builder Pattern -->
-      <section data-narration="빌더 패턴은 복잡한 객체를 단계별로 생성하는 디자인 패턴입니다. 메서드 체이닝과 타입 시스템을 결합하면 필수 항목 누락을 컴파일 타임에 방지할 수 있습니다.">
+      <section data-narration="빌더 패턴은 복잡한 객체를 단계별로 조립하여 생성하는 디자인 패턴입니다. 이 코드에서 QueryBuilder는 from, select, where, orderBy, limit 메서드를 체이닝하여 SQL 쿼리를 구성합니다. 각 메서드가 this를 반환하여 점 표기법으로 연속 호출이 가능하고, build 메서드에서 모든 설정을 조합하여 최종 SQL 문자열을 생성합니다. table과 fields가 없으면 에러를 던져 필수 항목 누락을 방지합니다.">
         <h2>빌더 패턴 (Builder Pattern)</h2>
         <p>빌더 패턴이란: 복잡한 객체를 한 번에 만들지 않고, <strong>단계별로 조립</strong>하여 생성하는 디자인 패턴입니다. 레고 블록을 하나씩 끼워 맞추듯, 메서드를 체이닝하여 객체를 완성합니다.</p>
         <pre><code class="language-typescript" data-trim>
@@ -239,7 +239,7 @@ const query = new QueryBuilder()
       </section>
 
       <!-- Slide 6: State Machine with Discriminated Unions -->
-      <section data-narration="판별 유니온을 활용한 상태 머신 패턴입니다. 각 상태에서 허용되는 전환만 타입으로 정의하여, 잘못된 상태 변경을 원천 차단합니다.">
+      <section data-narration="판별 유니온을 활용한 상태 머신 패턴입니다. 이 코드에서 OrderState는 pending, confirmed, shipped, delivered, cancelled 다섯 가지 상태를 각각 다른 데이터 구조로 정의합니다. confirmOrder 함수는 Extract 타입으로 pending 상태만 입력으로 받아 confirmed 상태를 반환합니다. renderOrder의 switch문은 모든 상태를 처리해야 하며, 빠진 상태가 있으면 컴파일 에러가 발생합니다. 잘못된 상태 전이를 타입으로 원천 차단합니다.">
         <h2>상태 머신 (State Machine): Discriminated Union</h2>
         <p>상태 머신이란: 객체가 가질 수 있는 <strong>모든 상태와 상태 간 전이 규칙</strong>을 미리 정의하는 패턴입니다. 예를 들어 주문은 "대기 &rarr; 확정 &rarr; 배송 &rarr; 완료" 순서로만 진행되어야 합니다.</p>
         <pre><code class="language-typescript" data-trim>
@@ -289,7 +289,7 @@ function renderOrder(order: OrderState): string {
       </section>
 
       <!-- Slide 7: Type-safe Event Emitter -->
-      <section data-narration="이벤트 이미터를 타입 안전하게 구현하는 방법입니다. 이벤트 이름과 핸들러의 매개변수 타입을 매핑하여 잘못된 이벤트 사용을 방지합니다.">
+      <section data-narration="이벤트 이미터를 타입 안전하게 구현하는 방법입니다. 이 코드에서 AppEvents 인터페이스는 이벤트 이름과 전달할 데이터 타입을 매핑합니다. TypedEventEmitter 클래스의 on 메서드는 이벤트 이름에 따라 리스너 콜백의 매개변수 타입이 자동으로 결정됩니다. emit 메서드도 이벤트 이름에 맞는 데이터만 전달할 수 있습니다. 존재하지 않는 이벤트나 잘못된 데이터 타입은 컴파일 시점에 에러로 잡힙니다.">
         <h2>타입 안전한 이벤트 이미터</h2>
         <pre><code class="language-typescript" data-trim>
 // 이벤트 맵 정의 - 이벤트 이름과 전달할 데이터 타입을 연결
@@ -345,7 +345,7 @@ emitter.emit('post:created', {
       </section>
 
       <!-- Slide 8: Repository Pattern -->
-      <section data-narration="리포지토리 패턴은 데이터 접근 로직을 추상화합니다. 제네릭 인터페이스로 정의하면 어떤 엔티티에도 동일한 CRUD 인터페이스를 적용할 수 있습니다.">
+      <section data-narration="리포지토리 패턴은 데이터 접근 로직을 하나의 인터페이스로 추상화합니다. 이 코드에서 Repository 제네릭 인터페이스는 BaseEntity를 확장하는 어떤 타입이든 findById, findAll, create, update, delete 메서드를 표준화합니다. create의 매개변수는 Omit으로 id와 타임스탬프를 제외한 필드만 받습니다. UserRepository 구현체는 이 인터페이스를 충족하면서 실제 DB 로직을 담당합니다. 저장소가 바뀌어도 인터페이스는 동일합니다.">
         <h2>리포지토리 패턴 (Repository Pattern)</h2>
         <p>리포지토리 패턴이란: 데이터를 저장하고 조회하는 로직을 <strong>하나의 인터페이스로 추상화</strong>하는 패턴입니다. 실제 저장소가 DB인지, 파일인지, API인지 상관없이 동일한 방식으로 데이터에 접근할 수 있습니다.</p>
         <pre><code class="language-typescript" data-trim>
@@ -393,7 +393,7 @@ class UserRepository implements Repository&lt;User&gt; {
       </section>
 
       <!-- Slide 9: Result Type (Either Pattern) -->
-      <section data-narration="Result 타입은 함수의 성공과 실패를 명시적으로 표현하는 패턴입니다. 예외 대신 반환값으로 에러를 전달하여, 에러 처리를 강제합니다.">
+      <section data-narration="Result 타입은 함수의 성공과 실패를 타입으로 명시적으로 표현하는 패턴입니다. 이 코드에서 Result 제네릭은 ok가 true이면 value에 성공값을, ok가 false이면 error에 에러 정보를 담는 판별 유니온입니다. Ok와 Err 헬퍼 함수로 결과를 생성하고, parseAge 함수처럼 사용합니다. try/catch와 달리 호출자가 반드시 ok 여부를 확인해야 하므로 에러 처리를 빼먹을 수 없습니다.">
         <h2>Result 타입 (Either 패턴)</h2>
         <p>예외 대신 <strong>타입으로</strong> 성공/실패를 표현하는 패턴</p>
         <pre><code class="language-typescript" data-trim>
@@ -441,7 +441,7 @@ if (result.ok) {
       </section>
 
       <!-- Slide 10: Result Type - Chaining -->
-      <section data-narration="Result 타입에 map, flatMap 같은 메서드를 추가하면 함수형 프로그래밍 스타일의 에러 처리 파이프라인을 구성할 수 있습니다.">
+      <section data-narration="Result 타입에 map, flatMap, unwrapOr 메서드를 추가하면 함수형 프로그래밍 스타일의 에러 처리 파이프라인을 구성할 수 있습니다. 이 코드에서 map은 성공 값에만 변환 함수를 적용하고 실패면 그대로 통과시킵니다. flatMap은 성공 값으로 다음 Result를 생성하여 검증을 체이닝합니다. unwrapOr는 성공이면 값을, 실패면 기본값을 반환합니다. 에러가 예외로 던져지지 않아 컴파일러가 모든 경로를 강제합니다.">
         <h2>Result 타입 - 체이닝</h2>
         <pre><code class="language-typescript" data-trim>
 // Result에 변환/체이닝 메서드 추가
@@ -493,7 +493,7 @@ const userName = ResultHelper.unwrapOr(
       </section>
 
       <!-- Slide 11: Branding / Opaque Types -->
-      <section data-narration="브랜디드 타입으로 같은 원시 타입이라도 의미적으로 구분할 수 있습니다. 사용자 ID와 주문 ID를 혼동하는 실수를 타입 시스템으로 방지합니다.">
+      <section data-narration="브랜디드 타입으로 같은 원시 타입이라도 의미적으로 구분할 수 있습니다. 이 코드에서 Brand 유틸리티 타입은 원래 타입에 읽기 전용 브랜드 태그를 교차 타입으로 추가합니다. UserId와 PostId는 둘 다 string이지만 서로 다른 브랜드를 가져 혼용이 불가능합니다. KRW와 USD도 number이지만 통화 혼동을 방지합니다. createUserId 같은 생성 함수에서 유효성 검증까지 포함하면 더욱 안전합니다.">
         <h2>브랜디드 타입 (Branded Type) / Opaque 타입</h2>
         <p>같은 <code>string</code>이나 <code>number</code>지만 <strong>의미적으로 구분</strong>되어야 하는 값을 타입으로 보호합니다. 예: UserId와 PostId는 둘 다 string이지만 절대 혼용하면 안 됩니다.</p>
         <pre><code class="language-typescript" data-trim>
@@ -546,7 +546,7 @@ payInKRW(priceUSD);  // 컴파일 에러! USD는 KRW가 아님
       </section>
 
       <!-- Slide 12: Type-safe State Management -->
-      <section data-narration="리덕스 스타일의 상태 관리를 타입 안전하게 구현하는 방법입니다. 액션 타입과 상태 타입을 정의하여 리듀서에서 정확한 타입 추론을 받습니다.">
+      <section data-narration="리덕스 스타일의 상태 관리를 타입 안전하게 구현하는 방법입니다. 이 코드에서 Action 유니온 타입은 앱에서 발생할 수 있는 모든 행동을 type 필드로 구별합니다. reducer 함수의 switch문에서 case별로 action.payload의 타입이 자동으로 좁혀집니다. SET_USER 케이스에서는 User 타입으로, SET_LOADING에서는 boolean으로 추론됩니다. 잘못된 payload를 사용하면 컴파일 에러가 발생하여 상태 관리의 안전성이 보장됩니다.">
         <h2>타입 안전한 상태 관리</h2>
         <p>Redux 스타일의 타입 안전한 액션/리듀서 패턴</p>
         <pre><code class="language-typescript" data-trim>
@@ -608,7 +608,7 @@ function reducer(state: AppState, action: Action): AppState {
       </section>
 
       <!-- Slide 13: Action Creator Helper -->
-      <section data-narration="액션 크리에이터 헬퍼를 만들면 반복적인 액션 타입 정의를 줄이고, 타입 안전한 디스패치를 간결하게 구현할 수 있습니다.">
+      <section data-narration="액션 크리에이터 헬퍼를 만들면 반복적인 액션 객체 생성을 자동화할 수 있습니다. 이 코드에서 createAction 함수는 액션 타입 문자열을 받아 해당 타입의 payload를 인자로 받는 함수를 반환합니다. Extract 유틸리티 타입으로 Action 유니온에서 해당 타입만 추출하여 payload 타입을 결정합니다. setLoading에 문자열을 전달하면 boolean이어야 한다는 컴파일 에러가 발생합니다. Redux Toolkit의 createSlice와 동일한 원리입니다.">
         <h2>액션 크리에이터 헬퍼</h2>
         <pre><code class="language-typescript" data-trim>
 // 타입 안전한 액션 크리에이터 생성기
@@ -645,7 +645,7 @@ toggleTodo({ id: '1' });  // number이어야 함
       </section>
 
       <!-- Slide 14: Working with Third-party Libraries -->
-      <section data-narration="서드파티 라이브러리를 타입스크립트에서 안전하게 사용하는 방법입니다. 타입 선언이 없는 라이브러리에 대해 직접 타입을 정의하는 방법도 알아봅니다.">
+      <section data-narration="서드파티 라이브러리를 타입스크립트에서 안전하게 사용하는 방법입니다. axios처럼 자체 타입을 포함하는 라이브러리도 있고, express처럼 별도의 앳types 패키지가 필요한 경우도 있습니다. 타입이 전혀 없는 라이브러리는 declare module로 직접 타입을 선언하거나, 래퍼 함수를 만들어 내부 코드에서는 타입이 보장되도록 합니다. any는 경계에만 두고 내부 코드는 항상 타입 안전하게 유지하는 것이 원칙입니다.">
         <h2>서드파티 라이브러리 활용</h2>
         <div class="two-columns">
           <div>
@@ -701,7 +701,7 @@ export function createOldLib(): OldLibApi {
       </section>
 
       <!-- Slide 15: Migration from JavaScript -->
-      <section data-narration="기존 자바스크립트 프로젝트를 타입스크립트로 단계적으로 마이그레이션하는 전략을 소개합니다. allowJs 옵션을 활용하여 점진적으로 전환합니다.">
+      <section data-narration="기존 자바스크립트 프로젝트를 타입스크립트로 마이그레이션하는 4단계 전략입니다. 1단계에서 allowJs를 켜고 strict를 끈 상태로 시작하고, 2단계에서 파일을 하나씩 ts로 리네이밍합니다. 3단계에서 공유 타입과 API 계층부터 타입을 추가하고, 4단계에서 strict 옵션을 하나씩 활성화합니다. ts-expect-error 주석으로 임시 무시한 곳은 TODO와 함께 기록하여 나중에 검색하고 점진적으로 수정합니다.">
         <h2>JavaScript에서 마이그레이션</h2>
         <p>점진적으로 TypeScript를 도입하는 실전 전략</p>
         <div class="fragment">
@@ -758,7 +758,7 @@ export function createOldLib(): OldLibApi {
       </section>
 
       <!-- Slide 16: Performance Considerations -->
-      <section data-narration="타입스크립트의 성능 관련 고려사항을 살펴봅시다. 컴파일 시간 최적화, 프로젝트 레퍼런스, 증분 빌드 등의 기법을 소개합니다.">
+      <section data-narration="타입스크립트의 성능 관련 고려사항을 살펴봅시다. 이 코드에서 incremental 옵션은 변경된 부분만 다시 컴파일하여 빌드 속도를 향상시키고, skipLibCheck는 선언 파일 체크를 건너뜁니다. 런타임 측면에서 enum은 실제 객체를 생성하므로 as const 객체나 유니온 타입이 더 가볍습니다. namespace도 즉시 실행 함수를 생성하므로 ES 모듈이 권장됩니다. interface와 type은 컴파일 후 완전히 제거되어 런타임 비용이 없습니다.">
         <h2>성능 고려사항</h2>
         <div class="fragment">
           <h3>컴파일 성능 최적화</h3>
@@ -814,7 +814,7 @@ export function createOldLib(): OldLibApi {
       </section>
 
       <!-- Slide 17: Zero-cost Abstraction Example -->
-      <section data-narration="타입스크립트의 타입 시스템은 컴파일 후 완전히 제거되므로 런타임 비용이 없습니다. 이것이 바로 제로 비용 추상화의 핵심입니다.">
+      <section data-narration="타입스크립트의 제로 비용 추상화를 확인합니다. 이 코드에서 interface, type 별칭, Readonly, Partial, keyof 같은 타입 연산과 제네릭 함수의 타입 매개변수는 컴파일 후 모두 제거됩니다. 반면 enum은 런타임에 실제 객체를 생성하므로 as const 객체와 typeof 조합이 더 가볍습니다. 핵심 원칙은 interface와 type을 최대한 활용하여 타입 시스템을 강력하게 만들수록 런타임 검증 코드가 줄어든다는 것입니다.">
         <h2>제로 비용 추상화</h2>
         <pre><code class="language-typescript" data-trim>
 // 이 모든 타입 코드는 컴파일 후 완전히 사라집니다!
@@ -856,7 +856,7 @@ type Direction2 = typeof Direction2[keyof typeof Direction2];
       </section>
 
       <!-- Slide 18: Final Course Summary -->
-      <section data-narration="12개 챕터에 걸친 타입스크립트 완전 정복 과정을 마칩니다. 기본 타입부터 고급 패턴까지, 실전에서 활용할 수 있는 탄탄한 기반을 갖추셨습니다. 수고하셨습니다!">
+      <section data-narration="12개 챕터에 걸친 타입스크립트 완전 정복 과정을 마칩니다. 가장 중요한 조언 세 가지입니다. 첫째, strict 모드를 항상 사용하고 any를 피하세요. 둘째, 타입을 먼저 설계하고 구현을 시작하면 버그가 크게 줄어듭니다. 셋째, 컴파일러의 에러 메시지를 적이 아닌 동료로 대하세요. 기본 타입부터 실전 패턴까지 탄탄한 기반을 갖추셨습니다. 긴 과정을 완주하시느라 정말 수고하셨습니다!">
         <h2>TypeScript 완전 정복 - 전체 과정 요약</h2>
         <p style="font-size: 0.7em; color: #aaa;">이 챕터의 패턴들이 어렵게 느껴졌다면 정상입니다! Chapter 1~8의 기초가 탄탄해지면 자연스럽게 이해됩니다.</p>
         <div class="two-columns" style="font-size: 0.85em;">

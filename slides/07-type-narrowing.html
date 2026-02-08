@@ -14,7 +14,7 @@
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section class="chapter-title" data-narration="챕터 7, 타입 좁히기입니다. 유니온 타입에서 정확한 타입을 추론하는 다양한 기법을 배워보겠습니다.">
+      <section class="chapter-title" data-narration="챕터 7, 타입 좁히기입니다. 이 챕터에서는 유니온 타입에서 정확한 타입을 추론하는 다양한 기법, 판별 유니온 패턴, 그리고 완전성 검사를 학습합니다. 타입 좁히기는 타입 안전한 코드 작성의 핵심이며, 실전에서 런타임 에러를 방지하는 데 필수적입니다.">
         <div class="chapter-number">Chapter 7</div>
         <h1>타입 좁히기 (Type Narrowing)</h1>
         <p class="subtitle">넓은 타입을 좁은 타입으로</p>
@@ -27,7 +27,7 @@
       </section>
 
       <!-- Slide 2: What is Type Narrowing? -->
-      <section data-narration="타입 좁히기란 넓은 타입에서 더 구체적인 타입으로 범위를 줄이는 것입니다. 조건문을 통해 타입스크립트가 변수의 정확한 타입을 알 수 있게 됩니다.">
+      <section data-narration="타입 좁히기란 넓은 타입에서 더 구체적인 타입으로 범위를 줄이는 것입니다. 코드에서 printValue 함수는 string 또는 number 유니온을 받아, typeof 조건문으로 string일 때 toUpperCase를, number일 때 toFixed를 안전하게 호출합니다. 타입스크립트 컴파일러의 제어 흐름 분석이 이를 자동으로 처리합니다.">
         <h2>타입 좁히기란?</h2>
         <div class="tip" style="margin-bottom: 0.5em;">
           <strong>왜 이게 필요한가?</strong> TypeScript가 타입을 확실히 알 수 없을 때, 우리가 도와줘야 합니다. 예를 들어 <code>string | number</code> 타입인 값은 <code>.toUpperCase()</code>도 <code>.toFixed()</code>도 바로 쓸 수 없습니다. 어떤 타입인지 먼저 확인해야 합니다.
@@ -56,7 +56,7 @@ function printValue(value: string | number) {
       </section>
 
       <!-- Slide 3: typeof Guards -->
-      <section data-narration="typeof 연산자는 가장 기본적인 타입 가드입니다. string, number, boolean, object 등의 원시 타입을 런타임에서 확인하고, 타입스크립트가 자동으로 타입을 좁힙니다.">
+      <section data-narration="typeof 연산자는 가장 기본적인 타입 가드입니다. 코드에서 formatInput 함수는 string, number, boolean 유니온을 받아 typeof로 분기합니다. string이면 trim과 toLowerCase를, number이면 toLocaleString을 호출합니다. 단, typeof null은 object를 반환하는 자바스크립트 버그가 있으므로 null 체크 시 별도의 비교가 필요합니다.">
         <h2><code>typeof</code> 타입 가드</h2>
         <p>원시 타입 구별에 가장 기본적인 방법</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -92,7 +92,7 @@ function process(value: string | null) {
       </section>
 
       <!-- Slide 4: Truthiness Narrowing -->
-      <section data-narration="자바스크립트의 참과 거짓 판별을 활용한 좁히기입니다. null이나 undefined를 if문으로 체크하면 타입스크립트가 자동으로 해당 타입을 제외합니다.">
+      <section data-narration="자바스크립트의 참과 거짓 판별을 활용한 좁히기입니다. if문에 값을 직접 넣으면 null, undefined, 빈 문자열 등 falsy 값이 자동으로 제외됩니다. 코드에서 getUserDisplayName 함수는 lastName이 truthy일 때만 성과 이름을 합칩니다. 배열 필터링에서는 타입 서술어를 함께 사용해야 정확한 타입 추론이 가능합니다.">
         <h2>Truthiness (참/거짓) 좁히기</h2>
         <p>falsy 값을 체크하여 타입을 좁히기</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -134,7 +134,7 @@ const filtered2 = values.filter(
       </section>
 
       <!-- Slide 5: Equality Narrowing -->
-      <section data-narration="동등 연산자를 사용한 비교로도 타입을 좁힐 수 있습니다. 두 변수가 같다면 공통 타입으로 좁혀지고, 특정 값과 비교하면 해당 리터럴 타입으로 좁혀집니다.">
+      <section data-narration="동등 연산자를 사용한 비교로도 타입을 좁힐 수 있습니다. 코드에서 compare 함수는 a와 b가 삼중 등호로 같으면 공통 타입인 string으로 좁혀집니다. 이중 등호로 null을 비교하면 undefined도 함께 체크되어 편리합니다. switch문도 각 case에서 리터럴 타입으로 좁히는 동등성 좁히기의 한 형태입니다.">
         <h2>동등성 좁히기 (Equality Narrowing)</h2>
         <p><code>===</code>, <code>!==</code>, <code>==</code>, <code>!=</code>로 타입을 좁히기</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -172,7 +172,7 @@ function getLabel(status: "active" | "inactive" | "pending"): string {
       </section>
 
       <!-- Slide 6: The in Operator -->
-      <section data-narration="in 연산자는 객체에 특정 속성이 존재하는지 확인합니다. 속성의 존재 여부로 타입을 구분하므로, 서로 다른 형태의 객체를 안전하게 구분할 수 있습니다.">
+      <section data-narration="in 연산자는 객체에 특정 속성이 존재하는지 런타임에서 확인합니다. 코드에서 move 함수는 fly 속성이 있으면 Bird로, 없으면 Fish로 좁힙니다. 실전에서는 API 응답의 성공과 실패를 error 속성 존재 여부로 구분하는 패턴이 매우 유용합니다. 공통 메서드인 layEggs는 좁히기 없이 바로 호출할 수 있습니다.">
         <h2>in 연산자</h2>
         <p>객체에 특정 프로퍼티가 있는지 확인하여 타입 좁히기</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -225,7 +225,7 @@ function handleResponse(res: SuccessResponse | ErrorResponse) {
       </section>
 
       <!-- Slide 7: instanceof -->
-      <section data-narration="instanceof 연산자는 객체가 특정 클래스의 인스턴스인지 확인합니다. 클래스 기반의 타입 좁히기에 사용되며, Date나 Error 같은 내장 클래스에도 활용됩니다.">
+      <section data-narration="instanceof 연산자는 객체가 특정 클래스의 인스턴스인지 확인합니다. 코드에서 handleError 함수는 HttpError이면 statusCode에 접근하고, ValidationError이면 field에 접근합니다. 클래스 기반 에러 처리 패턴에서 핵심적으로 사용되며, Date나 RegExp 같은 내장 클래스에도 동일하게 적용됩니다.">
         <h2><code>instanceof</code> 체크</h2>
         <p>클래스 인스턴스 (Instance, 클래스로 만든 실제 객체) 여부를 판별하여 타입 좁히기</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -272,7 +272,7 @@ function formatDate(value: string | Date): string {
       </section>
 
       <!-- Slide 8: Type Predicates -->
-      <section data-narration="타입 서술어는 사용자 정의 타입 가드를 만드는 방법입니다. 함수의 반환 타입에 'is'를 사용하여 특정 조건이 참일 때 타입을 좁히도록 타입스크립트에 알려줍니다.">
+      <section data-narration="타입 서술어는 사용자 정의 타입 가드를 만드는 방법입니다. 함수의 반환 타입에 is 키워드를 사용하면, 해당 함수가 true를 반환할 때 타입이 좁혀집니다. 코드에서 isCat 함수는 meow 속성 존재 여부로 Cat 타입을 판별합니다. 배열 filter와 조합하면 정확한 타입의 배열을 얻을 수 있어 실전에서 매우 유용합니다.">
         <h2>타입 서술어 (Type Predicate)</h2>
         <p><code>is</code> 키워드로 커스텀 타입 가드 함수를 만들기. "이 함수가 true를 반환하면, 이 값은 반드시 이 타입이다"라고 TypeScript에게 알려주는 것입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -327,7 +327,7 @@ const admins: AdminUser[] = users.filter(isAdmin);
       </section>
 
       <!-- Slide 9: Discriminated Unions -->
-      <section data-narration="판별 유니온은 공통 속성으로 타입을 구분하는 패턴입니다. 각 타입에 고유한 리터럴 값을 가진 공통 속성을 두면 switch문으로 안전하게 분기할 수 있습니다.">
+      <section data-narration="판별 유니온은 공통 리터럴 속성인 판별자로 타입을 구분하는 패턴입니다. 코드에서 Shape 유니온의 각 멤버는 kind라는 고유한 리터럴 값을 가지며, switch문에서 kind로 분기하면 각 블록 안에서 Circle, Rectangle, Triangle로 정확히 좁혀집니다. 이 패턴은 대규모 애플리케이션에서 안전한 분기 처리의 핵심입니다.">
         <h2>판별 유니온 (Discriminated Union)</h2>
         <p>공통 리터럴 프로퍼티(판별자)로 유니온 멤버를 구별하는 강력한 패턴. 각 타입에 "이름표"를 붙여놓고 그 이름표로 구분하는 방식입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -370,7 +370,7 @@ function getArea(shape: Shape): number {
       </section>
 
       <!-- Slide 10: Discriminated Unions - Real World -->
-      <section data-narration="판별 유니온은 리덕스 액션 정의나 상태 머신 구현에서 핵심적으로 사용됩니다. 각 상태나 액션의 타입을 명확하게 구분하여 안전한 처리를 보장합니다.">
+      <section data-narration="판별 유니온은 리덕스 액션 정의나 비동기 상태 관리에서 핵심적으로 사용됩니다. 코드에서 reducer 함수는 action.type으로 분기하여 각 케이스에서 data나 error 같은 고유 속성에 안전하게 접근합니다. AsyncState 제네릭 타입은 로딩, 성공, 에러 상태를 하나의 유니온으로 표현하여 상태 머신 패턴을 구현합니다.">
         <h2>판별 유니온 실전: Redux 액션 / 상태 머신</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // Redux 스타일 액션: type이 판별자(이름표) 역할
@@ -422,7 +422,7 @@ function renderUser(state: AsyncState&lt;User&gt;) {
       </section>
 
       <!-- Slide 11: Exhaustive Checking with never -->
-      <section data-narration="완전성 검사는 모든 가능한 경우를 빠짐없이 처리했는지 확인하는 기법입니다. never 타입을 활용하여 새로운 타입이 추가되면 컴파일 에러로 알려줍니다.">
+      <section data-narration="완전성 검사는 모든 가능한 경우를 빠짐없이 처리했는지 확인하는 기법입니다. 코드에서 switch문의 default에 never 타입 변수를 할당하면, 모든 케이스가 처리되었을 때만 컴파일이 성공합니다. 새로운 Pentagon 타입을 추가하면 해당 케이스를 처리하지 않은 곳에서 컴파일 에러가 발생하여 누락을 즉시 발견할 수 있습니다.">
         <h2>완전성 검사 (Exhaustive Checking)</h2>
         <p><code>never</code> 타입으로 모든 경우를 처리했는지 컴파일 타임 (Compile Time, 코드 변환 시점)에 검증</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -466,7 +466,7 @@ type Shape = Circle | Rectangle | Triangle | Pentagon;
       </section>
 
       <!-- Slide 12: Assertion Functions -->
-      <section data-narration="단언 함수는 조건이 거짓이면 에러를 던지는 함수입니다. asserts 키워드를 사용하여, 함수 호출 이후의 코드에서 타입이 좁혀지도록 타입스크립트에 알려줍니다.">
+      <section data-narration="단언 함수는 조건이 거짓이면 에러를 던지고, 참이면 이후 코드에서 타입을 좁히는 함수입니다. 코드에서 assertIsString은 값이 문자열이 아니면 예외를 발생시키고, 통과하면 이후 코드에서 string 타입으로 좁혀집니다. assertNotNull 제네릭 함수는 설정값 검증처럼 null 체크가 필요한 실전 상황에서 매우 유용합니다.">
         <h2>단언 함수 (Assertion Functions)</h2>
         <p>조건이 거짓이면 에러를 던지고, 참이면 타입을 좁힘</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -513,7 +513,7 @@ function initApp(config: Config) {
       </section>
 
       <!-- Slide 13: Control Flow Analysis -->
-      <section data-narration="타입스크립트는 코드의 제어 흐름을 분석하여 자동으로 타입을 좁힙니다. if, switch, 삼항 연산자, 논리 연산자 등 다양한 분기에서 타입을 추적합니다.">
+      <section data-narration="타입스크립트는 코드의 제어 흐름을 분석하여 자동으로 타입을 좁힙니다. 코드에서 early return으로 null을 제거하면 이후 블록에서는 string 또는 number만 남고, typeof로 string을 제거하면 number만 남습니다. 변수에 값을 할당하면 해당 시점부터 할당된 타입으로 좁혀지며, 논리 연산자와 nullish coalescing도 타입 좁히기에 활용됩니다.">
         <h2>제어 흐름 분석 (Control Flow Analysis)</h2>
         <p>TypeScript가 코드 흐름을 추적하여 자동으로 타입을 좁히는 과정</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -560,7 +560,7 @@ function greet(name: string | null) {
       </section>
 
       <!-- Slide 14: Narrowing Techniques Summary -->
-      <section data-narration="타입 좁히기의 모든 기법을 정리해 보겠습니다. typeof, instanceof, in, 타입 서술어, 판별 유니온, 완전성 검사 등 상황에 맞는 적절한 기법을 선택하는 것이 중요합니다.">
+      <section data-narration="타입 좁히기의 모든 기법을 정리해 보겠습니다. typeof는 원시 타입, instanceof는 클래스 인스턴스, in은 객체 속성 존재 여부에 사용합니다. 타입 서술어는 커스텀 로직에, 판별 유니온은 태그 기반 분기에 적합합니다. 상황에 맞는 기법을 선택하는 것이 중요하며, 여러 기법을 조합하면 더욱 강력한 타입 안전성을 확보할 수 있습니다.">
         <h2>타입 좁히기 기법 총정리</h2>
         <table class="compare-table" style="font-size: 0.7em;">
           <thead>
@@ -621,7 +621,7 @@ function greet(name: string | null) {
       </section>
 
       <!-- Slide 15: Summary -->
-      <section data-narration="챕터 7을 마치겠습니다. 타입 좁히기는 타입 안전한 코드를 작성하는 핵심 기술입니다. 다양한 타입 가드 기법을 상황에 맞게 활용해 보세요.">
+      <section data-narration="챕터 7을 마치겠습니다. 가장 중요한 포인트는 판별 유니온과 완전성 검사 조합으로, 이것만 잘 활용해도 대부분의 타입 안전성 문제를 해결할 수 있습니다. 실전에서는 상황에 맞는 타입 가드를 선택하고 여러 기법을 조합하세요. 다음 챕터에서는 조건부 타입과 매핑된 타입 등 고급 타입 시스템을 학습합니다.">
         <h2>Chapter 7 요약</h2>
         <div class="key-point">
           <h3>핵심 정리</h3>

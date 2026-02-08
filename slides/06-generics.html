@@ -14,7 +14,7 @@
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section class="chapter-title" data-narration="챕터 6, 제네릭입니다. 타입을 매개변수처럼 다루는 강력한 기능을 배워보겠습니다.">
+      <section class="chapter-title" data-narration="챕터 6, 제네릭입니다. 이 챕터에서는 타입을 매개변수처럼 다루는 제네릭 함수, 인터페이스, 클래스를 학습하고, 제약 조건으로 허용 범위를 제한하는 방법과 Partial, Pick 같은 유틸리티 타입의 내부 원리를 살펴봅니다. 제네릭은 타입 안전성과 코드 재사용성을 동시에 확보하는 핵심 도구입니다. 라이브러리 설계, API 클라이언트, 상태 관리 등 실전에서 반드시 필요합니다.">
         <div class="chapter-number">Chapter 6</div>
         <h1>제네릭 (Generic)</h1>
         <p class="subtitle">타입을 매개변수로 만드는 마법</p>
@@ -27,7 +27,7 @@
       </section>
 
       <!-- Slide 2: Why Generics? -->
-      <section data-narration="제네릭 없이는 모든 타입마다 같은 함수를 반복 작성하거나 any를 사용해야 합니다. 제네릭을 사용하면 타입 안전성을 유지하면서 재사용 가능한 코드를 작성할 수 있습니다.">
+      <section data-narration="제네릭 없이는 모든 타입마다 같은 함수를 반복 작성하거나 any를 사용해야 합니다. identityNumber, identityString처럼 타입마다 함수를 만드는 것은 비효율적이고, any를 사용하면 타입 정보가 사라져 toFixed 같은 잘못된 호출을 막지 못합니다. 제네릭 함수 identity는 꺾쇠 T 안에 타입 매개변수를 선언하여, 호출할 때 전달된 값에 따라 T가 string이나 number로 자동 결정됩니다. 이를 통해 하나의 함수로 모든 타입을 처리하면서도 타입 안전성을 완벽하게 유지할 수 있습니다.">
         <h2>왜 제네릭이 필요한가?</h2>
         <div class="tip" style="margin-bottom: 0.5em;">
           제네릭은 <strong>내용물을 모르는 상자</strong>와 같습니다. 상자에 "사과"를 넣으면 사과 상자가 되고, "책"을 넣으면 책 상자가 됩니다. 마찬가지로 제네릭은 나중에 어떤 타입이 들어올지 미리 정하지 않고, 사용할 때 결정합니다.
@@ -82,8 +82,46 @@ num.toFixed();     // OK
         </div>
       </section>
 
-      <!-- Slide 3: Generic Functions -->
-      <section data-narration="제네릭 함수는 꺾쇠괄호 안에 타입 매개변수를 선언합니다. 호출 시점에 실제 타입이 결정되어, 하나의 함수로 다양한 타입을 처리할 수 있습니다.">
+      <!-- Slide 3: Generic Mental Model (NEW) -->
+      <section data-narration="제네릭에서 T가 어떻게 흘러가는지 단계별로 추적해 봅시다. identity 함수를 string 타입으로 호출하면, 먼저 T가 string으로 결정됩니다. 그러면 매개변수 arg의 타입이 string이 되고, 반환 타입도 string이 됩니다. 따라서 결과 변수 result의 타입이 string으로 확정됩니다. wrap 함수처럼 T가 number로 결정되면, 매개변수와 반환 객체의 value 속성 모두 number가 됩니다. 이처럼 T는 함수 정의 전체에 걸쳐 일관되게 하나의 타입으로 치환되어 흘러간다고 이해하면 됩니다. 이 멘탈 모델을 가지면 복잡한 제네릭도 쉽게 읽을 수 있습니다.">
+        <h2>제네릭 멘탈 모델 - T가 흐르는 과정</h2>
+        <div class="key-point">
+          <h3>핵심 원리</h3>
+          <p>제네릭의 T는 호출 시점에 <strong>하나의 구체적 타입으로 치환</strong>되어, 함수 전체에 일관되게 흘러갑니다.</p>
+        </div>
+        <pre><code class="typescript" data-trim data-noescape>
+// 1단계: 제네릭 함수 정의 - T는 아직 미정
+function identity&lt;T&gt;(arg: T): T {
+  return arg;
+}
+
+// 2단계: 호출 시 T가 결정됨
+const result = identity&lt;string&gt;("hello");
+//                      ^^^^^^
+// T = string으로 결정!
+
+// 3단계: T가 string으로 치환되어 흐름
+// identity&lt;string&gt;(arg: string): string
+//                       ^^^^^^   ^^^^^^
+// 매개변수 타입 = string, 반환 타입 = string
+
+// 4단계: 결과 타입 확정
+// result: string  →  toUpperCase() 호출 가능!
+        </code></pre>
+        <pre class="fragment"><code class="typescript" data-trim data-noescape>
+// 또 다른 예: T = number로 흐르는 과정
+function wrap&lt;T&gt;(value: T): { value: T } {
+  return { value };
+}
+
+const wrapped = wrap(42);
+// T = number  →  매개변수: number  →  반환: { value: number }
+// wrapped.value는 number 타입!
+        </code></pre>
+      </section>
+
+      <!-- Slide 4: Generic Functions -->
+      <section data-narration="제네릭 함수는 꺾쇠괄호 안에 타입 매개변수를 선언하고, 호출 시점에 실제 타입이 결정됩니다. pair 함수는 T와 U 두 개의 타입 매개변수를 사용하여, 서로 다른 타입의 값 두 개를 튜플로 묶어 반환합니다. firstElement 함수는 T 타입 배열에서 첫 번째 요소를 반환하며, 배열이 비어있을 수 있으므로 T 또는 undefined를 반환합니다. map 함수는 Input과 Output 두 타입 매개변수로 배열 변환의 입력과 출력 타입을 각각 지정합니다. 관례적으로 T는 Type, K는 Key, V는 Value, E는 Element를 나타냅니다.">
         <h2>제네릭 함수</h2>
         <p><code>&lt;T&gt;</code>는 타입 변수 - 호출 시 실제 타입으로 치환됩니다</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -116,8 +154,8 @@ const lengths = map(["hello", "world"], s => s.length); // number[]
         </div>
       </section>
 
-      <!-- Slide 4: Generic Interfaces -->
-      <section data-narration="인터페이스에도 제네릭을 적용할 수 있습니다. 컬렉션이나 응답 래퍼 같은 범용적인 구조를 정의할 때 제네릭 인터페이스가 매우 유용합니다.">
+      <!-- Slide 5: Generic Interfaces -->
+      <section data-narration="인터페이스에도 제네릭을 적용하여 범용적인 구조를 정의할 수 있습니다. ApiResponse 제네릭 인터페이스는 success, data, error, timestamp 속성을 가지며, data의 타입만 T로 매개변수화되어 있습니다. 따라서 ApiResponse에 User를 전달하면 data가 User 타입이 되고, Product 배열을 전달하면 data가 Product 배열이 됩니다. 이처럼 공통 구조는 유지하면서 내부 데이터 타입만 바꿀 수 있어, API 응답 래퍼나 컬렉션 인터페이스를 설계할 때 코드 중복 없이 다양한 타입에 대응할 수 있습니다.">
         <h2>제네릭 인터페이스 (Interface)</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // API 응답을 위한 제네릭 인터페이스: 데이터 타입만 바뀌는 공통 구조
@@ -158,8 +196,8 @@ const productResponse: ApiResponse&lt;Product[]&gt; = {
         </code></pre>
       </section>
 
-      <!-- Slide 5: Generic Interfaces - Repository Pattern -->
-      <section data-narration="레포지토리 패턴은 데이터 접근 로직을 추상화하는 디자인 패턴입니다. 제네릭 인터페이스로 정의하면 어떤 엔티티 타입에도 재사용할 수 있습니다.">
+      <!-- Slide 6: Generic Interfaces - Repository Pattern -->
+      <section data-narration="레포지토리 패턴은 데이터 접근 로직을 추상화하는 디자인 패턴으로, 제네릭 인터페이스로 정의하면 어떤 엔티티 타입에도 재사용할 수 있습니다. Repository 인터페이스는 T와 ID 두 타입 매개변수를 받아 findById, findAll, create, update, delete 메서드를 정의합니다. UserRepository 클래스는 이를 User 타입으로 구현하여, 모든 메서드의 매개변수와 반환 타입이 User에 맞게 자동 결정됩니다. 같은 인터페이스로 ProductRepository, PostRepository 등을 만들 수 있어, 데이터 접근 계층을 일관성 있게 설계할 수 있습니다.">
         <h2>제네릭 인터페이스 실전: Repository 패턴</h2>
         <pre><code class="typescript" data-trim data-noescape>
 interface Repository&lt;T, ID = number&gt; {
@@ -207,8 +245,8 @@ class UserRepository implements Repository&lt;User&gt; {
         </code></pre>
       </section>
 
-      <!-- Slide 6: Generic Classes -->
-      <section data-narration="클래스에도 제네릭을 적용할 수 있습니다. 스택, 큐 같은 자료 구조를 어떤 타입에도 사용할 수 있도록 제네릭 클래스로 구현합니다.">
+      <!-- Slide 7: Generic Classes -->
+      <section data-narration="클래스에도 제네릭을 적용하여 어떤 타입에도 사용할 수 있는 자료 구조를 만들 수 있습니다. Stack 제네릭 클래스는 T 타입의 배열로 데이터를 저장하며, push는 T 타입 아이템을 추가하고, pop은 T 타입 또는 undefined를 반환합니다. numberStack을 number 타입으로 생성하면 숫자만 push할 수 있고 문자열을 넣으면 에러가 발생합니다. stringStack을 string 타입으로 생성하면 문자열 전용 스택이 됩니다. 이처럼 하나의 클래스 정의로 타입별 안전한 자료 구조를 만들어 코드 중복을 제거합니다.">
         <h2>제네릭 클래스</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // Stack&lt;T&gt;: T에 어떤 타입이든 넣을 수 있는 스택(쌓기) 자료구조
@@ -252,8 +290,8 @@ const top = stringStack.peek(); // string | undefined
         </code></pre>
       </section>
 
-      <!-- Slide 7: Generic Constraints -->
-      <section data-narration="extends 키워드를 사용하면 제네릭 타입에 제약 조건을 걸 수 있습니다. 특정 속성을 가진 타입만 허용하거나 특정 인터페이스를 구현한 타입만 받을 수 있습니다.">
+      <!-- Slide 8: Generic Constraints -->
+      <section data-narration="extends 키워드를 사용하면 제네릭 타입 매개변수에 제약 조건을 걸어, 특정 조건을 만족하는 타입만 허용할 수 있습니다. logLength 함수에서 T extends HasLength는 T가 반드시 length 속성을 가져야 한다는 뜻입니다. 따라서 string과 배열은 length가 있으므로 허용되지만, number는 length가 없어 에러가 발생합니다. getProperty 함수에서 K extends keyof T는 K가 T 객체의 키 중 하나여야 한다는 제약으로, 존재하지 않는 키를 전달하면 컴파일 시점에 차단됩니다. 이처럼 제약 조건으로 타입 안전성을 한층 강화할 수 있습니다.">
         <h2>제네릭 제약 조건 (Constraint)</h2>
         <p><code>extends</code> (확장/제한 키워드)로 타입 매개변수를 제한합니다. "이 타입은 최소한 이런 조건을 만족해야 한다"는 뜻입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -291,8 +329,45 @@ const age = getProperty(user, "age");     // number
         </code></pre>
       </section>
 
-      <!-- Slide 8: Type Parameters in Constraints -->
-      <section data-narration="제네릭 제약 조건에서 다른 타입 매개변수를 참조할 수 있습니다. 예를 들어 객체의 키만 허용하는 제약을 통해 안전한 속성 접근을 보장합니다.">
+      <!-- Slide 9: Common Constraint Patterns (NEW) -->
+      <section data-narration="실무에서 자주 사용하는 제네릭 제약 조건 패턴들을 모아서 살펴봅시다. T extends string은 문자열 관련 타입만 허용하여 포맷 함수에 적합합니다. T extends object는 원시 타입을 제외한 객체만 받아 키 목록을 반환합니다. T extends 중괄호 id number 형태는 id 속성이 있는 객체만 허용하여 엔티티를 다루는 함수에 유용합니다. T extends 함수 시그니처 형태는 함수 타입만 받아 실행 시간을 측정하는 래퍼를 만들 수 있습니다. 이 네 가지 패턴을 숙지하면 대부분의 실전 상황에서 적절한 제약 조건을 설정할 수 있습니다.">
+        <h2>자주 쓰는 제약 조건 패턴 모음</h2>
+        <div class="tip" style="margin-bottom: 0.5em;">
+          <strong>실전 패턴:</strong> 제약 조건은 "T가 최소한 무엇이어야 하는지"를 명시하여 타입 안전성을 높입니다.
+        </div>
+        <pre><code class="typescript" data-trim data-noescape>
+// 패턴 1: T extends string - 문자열 관련 타입만 허용
+function formatLabel&lt;T extends string&gt;(label: T): `[${T}]` {
+  return `[${label}]` as `[${T}]`;
+}
+const tag = formatLabel("error"); // "[error]" (리터럴 타입!)
+
+// 패턴 2: T extends object - 객체 타입만 허용 (원시 타입 제외)
+function getKeys&lt;T extends object&gt;(obj: T): (keyof T)[] {
+  return Object.keys(obj) as (keyof T)[];
+}
+getKeys({ name: "Kim", age: 30 }); // ("name" | "age")[]
+// getKeys("hello");  // Error! string은 object가 아님
+
+// 패턴 3: T extends { id: number } - 특정 속성을 가진 객체만 허용
+function findById&lt;T extends { id: number }&gt;(items: T[], id: number): T | undefined {
+  return items.find(item => item.id === id);
+}
+
+// 패턴 4: T extends (...args: any[]) => any - 함수 타입만 허용
+function measureTime&lt;T extends (...args: any[]) => any&gt;(fn: T): T {
+  return ((...args: any[]) => {
+    const start = performance.now();
+    const result = fn(...args);
+    console.log(`실행 시간: ${performance.now() - start}ms`);
+    return result;
+  }) as T;
+}
+        </code></pre>
+      </section>
+
+      <!-- Slide 10: Type Parameters in Constraints -->
+      <section data-narration="제네릭 제약 조건에서 다른 타입 매개변수를 참조하여 타입 간의 관계를 표현할 수 있습니다. pick 함수에서 K extends keyof T는 K가 T 객체의 키 중 하나여야 한다는 제약으로, 존재하지 않는 키를 전달하면 컴파일 에러가 발생합니다. user 객체에서 id, name, email만 안전하게 추출할 수 있고, phone 같은 없는 키를 시도하면 차단됩니다. assign 함수에서 U extends Partial T는 source가 target의 부분 집합이어야 한다는 제약으로, 엉뚱한 속성을 덮어쓰는 실수를 방지합니다. 이처럼 타입 매개변수 간 관계를 제약하면 더욱 정교한 타입 안전성을 확보합니다.">
         <h2>제약조건에서 타입 매개변수 사용</h2>
         <p>하나의 타입 매개변수를 다른 타입 매개변수의 제약에 활용</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -336,8 +411,8 @@ const updated = assign(
         </code></pre>
       </section>
 
-      <!-- Slide 9: Utility Types - Partial, Required, Readonly -->
-      <section data-narration="Partial은 모든 속성을 선택적으로, Required는 필수로, Readonly는 읽기 전용으로 만듭니다. 이 유틸리티 타입들은 내부적으로 제네릭과 매핑된 타입으로 구현되어 있습니다.">
+      <!-- Slide 11: Utility Types - Partial, Required, Readonly -->
+      <section data-narration="Partial 유틸리티 타입은 모든 속성을 선택적으로 만들어 업데이트 함수에서 일부 필드만 전달할 수 있게 합니다. Required는 반대로 모든 선택적 속성을 필수로 변환하여, age처럼 물음표가 붙은 속성도 반드시 제공해야 합니다. Readonly는 모든 속성에 readonly를 추가하여 한 번 생성된 후 변경을 차단합니다. 이 세 가지 유틸리티 타입은 내부적으로 매핑된 타입과 제네릭을 조합하여 구현되어 있으며, 기존 인터페이스를 새로 정의하지 않고도 다양한 변형을 만들 수 있어 실무에서 가장 빈번하게 사용됩니다.">
         <h2>유틸리티 타입 (1): Partial, Required, Readonly</h2>
         <pre><code class="typescript" data-trim data-noescape>
 interface User {
@@ -397,8 +472,8 @@ const user: FrozenUser = {
         </div>
       </section>
 
-      <!-- Slide 10: Utility Types - Record, Pick, Omit -->
-      <section data-narration="Record는 키-값 타입을 정의하고, Pick은 특정 속성만 선택하고, Omit은 특정 속성을 제외합니다. 기존 타입을 변형하여 새 타입을 쉽게 만들 수 있습니다.">
+      <!-- Slide 12: Utility Types - Record, Pick, Omit -->
+      <section data-narration="Record 유틸리티 타입은 키 타입과 값 타입을 지정하여 사전 형태의 객체를 만듭니다. Roles 유니온의 각 값이 키가 되고 문자열 배열이 값이 되어, admin, editor, viewer 세 키가 반드시 존재해야 합니다. Pick은 기존 타입에서 원하는 속성만 골라 새 타입을 만들고, Omit은 특정 속성을 제외합니다. 이 코드에서 UserProfile은 id, name, email만 선택하고, UserWithoutPassword는 password만 제외합니다. 실전에서는 이들을 조합하여 CreateUserDTO처럼 생성 요청 타입, UpdateUserDTO처럼 수정 요청 타입을 효율적으로 정의합니다.">
         <h2>유틸리티 타입 (2): Record, Pick, Omit</h2>
         <pre><code class="typescript" data-trim data-noescape>
 interface User {
@@ -435,8 +510,8 @@ type UpdateUserDTO = Partial&lt;Omit&lt;User, "id" | "password"&gt;&gt;;
         </code></pre>
       </section>
 
-      <!-- Slide 11: Conditional Types with Generics -->
-      <section data-narration="조건부 타입은 삼항 연산자와 비슷한 문법으로 조건에 따라 다른 타입을 반환합니다. 제네릭과 결합하면 입력 타입에 따라 출력 타입이 달라지는 유연한 타입을 만들 수 있습니다.">
+      <!-- Slide 13: Conditional Types with Generics -->
+      <section data-narration="조건부 타입은 삼항 연산자처럼 T extends U 형태로 조건을 검사하여 참이면 X, 거짓이면 Y 타입을 반환합니다. IsString 타입은 T가 string에 해당하면 yes, 아니면 no를 반환합니다. 실전에서는 API 엔드포인트에 따라 반환 타입을 자동 결정하는 패턴이 매우 유용합니다. ResponseType 조건부 타입은 users이면 User 배열, posts이면 Post 배열, comments이면 Comment 배열을 반환합니다. fetchData 함수에 이를 적용하면, 엔드포인트 문자열만으로 반환 타입이 자동 결정되어 타입 캐스팅 없이 안전한 API 호출이 가능합니다.">
         <h2>조건부 타입 (Conditional Type)과 제네릭</h2>
         <p>삼항 연산자처럼 동작하는 타입 레벨(타입을 다루는 차원의) 조건문</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -475,8 +550,8 @@ const posts = await fetchData("posts");     // Post[]
         </code></pre>
       </section>
 
-      <!-- Slide 12: keyof and typeof with Generics -->
-      <section data-narration="keyof는 객체 타입의 키를 유니온 타입으로 추출하고, typeof는 값으로부터 타입을 추출합니다. 이 두 연산자를 조합하면 타입 안전한 속성 접근이 가능합니다.">
+      <!-- Slide 14: keyof and typeof with Generics -->
+      <section data-narration="keyof 연산자는 객체 타입의 모든 키를 문자열 리터럴 유니온 타입으로 추출합니다. Config 인터페이스에 keyof를 적용하면 host, port, debug 세 키의 유니온이 됩니다. typeof 연산자는 실제 자바스크립트 값에서 타입 정보를 추출하여, defaultConfig 객체의 구조를 타입으로 가져옵니다. as const와 함께 사용하면 리터럴 타입까지 보존됩니다. keyof와 typeof를 제네릭과 조합하면, getConfigValue 함수처럼 유효한 키만 매개변수로 받고 해당 키의 정확한 값 타입을 반환하는 완벽한 타입 안전 함수를 만들 수 있습니다.">
         <h2><code>keyof</code>와 <code>typeof</code> 활용</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // keyof (키 추출 연산자): 객체 타입의 모든 키를 유니온으로 추출
@@ -513,8 +588,8 @@ const port = getConfigValue("port");   // 3000
         </code></pre>
       </section>
 
-      <!-- Slide 13: Mapped Types -->
-      <section data-narration="매핑된 타입은 기존 타입의 각 속성을 순회하면서 변환하는 타입입니다. in 키워드를 사용하여 키를 순회하며, Partial이나 Readonly 같은 유틸리티 타입이 이 방식으로 구현됩니다.">
+      <!-- Slide 15: Mapped Types -->
+      <section data-narration="매핑된 타입은 기존 타입의 각 속성을 순회하면서 변환하는 타입으로, in keyof 문법을 사용합니다. MyPartial은 T의 각 키 K에 대해 물음표를 붙여 선택적으로 만들고, MyReadonly는 readonly를 추가하고, MyRequired는 마이너스 물음표로 선택적 표시를 제거하여 필수로 만듭니다. 이것이 Partial, Readonly, Required 유틸리티 타입의 실제 내부 구현 원리입니다. 커스텀 매핑으로 Nullable은 각 속성에 null을 추가하고, Async는 각 속성을 Promise로 감싸는 새로운 변환을 만듭니다. 매핑된 타입을 이해하면 유틸리티 타입을 직접 설계할 수 있습니다.">
         <h2>매핑된 타입 (Mapped Type) 기초</h2>
         <p>기존 타입을 변환하여 새 타입을 생성합니다. "기존 타입의 각 프로퍼티에 대해 이런 변환을 적용하라"는 뜻입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
@@ -559,8 +634,8 @@ type AsyncUser = Async&lt;User&gt;;
         </code></pre>
       </section>
 
-      <!-- Slide 14: Utility Types Overview Table -->
-      <section data-narration="타입스크립트가 제공하는 주요 유틸리티 타입을 한눈에 정리해 보겠습니다. 목적에 따라 적절한 유틸리티 타입을 선택하면 코드가 간결해집니다.">
+      <!-- Slide 16: Utility Types Overview Table -->
+      <section data-narration="타입스크립트가 기본 제공하는 주요 유틸리티 타입을 한눈에 정리합니다. Partial은 모든 속성을 선택적으로, Required는 필수로, Readonly는 읽기 전용으로 변환합니다. Record는 키와 값 타입으로 객체를 정의하고, Pick은 특정 속성만 선택하고, Omit은 특정 속성을 제외합니다. Extract는 유니온에서 특정 타입만 추출하고, Exclude는 특정 타입을 제거합니다. NonNullable은 null과 undefined를 제거하고, ReturnType은 함수의 반환 타입을 추출합니다. 목적에 맞는 유틸리티 타입을 선택하면 타입 정의가 크게 간결해집니다.">
         <h2>유틸리티 타입 한눈에 보기</h2>
         <table class="compare-table" style="font-size: 0.7em;">
           <thead>
@@ -625,8 +700,8 @@ type AsyncUser = Async&lt;User&gt;;
         </table>
       </section>
 
-      <!-- Slide 15: Real-World Generic API Wrapper -->
-      <section data-narration="제네릭을 활용한 API 클라이언트를 만들어 봅시다. API 응답의 타입을 제네릭으로 지정하면, 각 엔드포인트마다 정확한 응답 타입을 보장받을 수 있습니다.">
+      <!-- Slide 17: Real-World Generic API Wrapper -->
+      <section data-narration="제네릭을 활용한 API 클라이언트 실전 예제입니다. ApiClient 클래스의 request 메서드는 T 타입 매개변수로 응답 데이터 타입을 지정하여, ApiResponse 제네릭 인터페이스로 감싼 결과를 반환합니다. get 메서드는 T 타입을 그대로 전달하고, getList는 PaginatedData 제네릭으로 페이지네이션 구조를 추가합니다. post 메서드는 T와 B 두 타입 매개변수로 반환 타입과 요청 본문 타입을 각각 지정합니다. 사용할 때 User 타입을 전달하면 반환값이 User로 확정되어, 별도의 타입 캐스팅 없이 완벽한 타입 추론이 이루어집니다.">
         <h2>실전 예제: 제네릭 API 클라이언트</h2>
         <pre><code class="typescript" data-trim data-noescape>
 interface ApiResponse&lt;T&gt; {
@@ -699,8 +774,8 @@ const newUser = await api.post&lt;User, CreateUserDTO&gt;(
         </code></pre>
       </section>
 
-      <!-- Slide 16: Generic with Default Types -->
-      <section data-narration="제네릭에도 기본 타입을 지정할 수 있습니다. 타입 인수를 생략하면 기본값이 사용되어, API를 더 편리하게 만들 수 있습니다.">
+      <!-- Slide 18: Generic with Default Types -->
+      <section data-narration="제네릭에도 기본 타입을 지정하여 타입 인수를 생략할 수 있게 만들 수 있습니다. EventEmitter 인터페이스는 Events 타입 매개변수에 Record string any를 기본값으로 지정하여, 타입 인수 없이 사용하면 모든 문자열 이벤트를 허용합니다. AppEvents 인터페이스를 전달하면 login, logout, error 등 정의된 이벤트만 허용되고, 각 이벤트의 데이터 타입도 정확히 추론됩니다. login 이벤트의 핸들러에서 data.userId는 string, data.timestamp는 number로 자동 타입이 결정됩니다. 이처럼 기본값을 활용하면 간단한 사용은 편리하게, 정밀한 사용은 타입 안전하게 설계할 수 있습니다.">
         <h2>제네릭 기본값 (Default Types)</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // 타입 매개변수에 기본값 지정
@@ -737,8 +812,8 @@ emitter.emit("error", {
         </div>
       </section>
 
-      <!-- Slide 17: Common Patterns -->
-      <section data-narration="실전에서 자주 사용되는 제네릭 패턴으로는 이벤트 핸들러, 팩토리 함수, 빌더 패턴 등이 있습니다. 이러한 패턴을 익히면 재사용 가능한 코드를 효과적으로 작성할 수 있습니다.">
+      <!-- Slide 19: Common Patterns -->
+      <section data-narration="실전에서 자주 사용되는 제네릭 패턴 세 가지를 살펴봅시다. 첫째, typedKeys 함수는 Object.keys의 반환 타입을 제네릭으로 강화하여 keyof T 배열을 반환합니다. 둘째, useState 함수는 초기값의 타입 T를 기반으로 getter와 setter를 반환하는 상태 관리 훅 패턴으로, setName에 숫자를 전달하면 에러가 발생합니다. 셋째, createArray 팩토리 함수는 길이와 값을 받아 T 타입 배열을 생성하여, 0을 전달하면 number 배열, hello를 전달하면 string 배열이 됩니다. 이러한 패턴을 익히면 라이브러리 수준의 재사용 가능한 코드를 작성할 수 있습니다.">
         <h2>자주 쓰는 제네릭 패턴</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // 1. 타입 안전한 Object.keys
@@ -774,8 +849,8 @@ const hellos = createArray(3, "hello");   // string[]
         </code></pre>
       </section>
 
-      <!-- Slide 18: Summary -->
-      <section data-narration="챕터 6을 마치겠습니다. 제네릭 함수, 인터페이스, 클래스, 제약 조건, 유틸리티 타입, 조건부 타입, 매핑된 타입까지 제네릭의 모든 것을 학습했습니다.">
+      <!-- Slide 20: Summary -->
+      <section data-narration="챕터 6을 마치겠습니다. 가장 중요한 포인트는 제네릭으로 타입을 매개변수화하여 재사용성과 안전성을 동시에 확보하는 것과, extends 제약 조건으로 허용 범위를 정밀하게 제어하는 것입니다. 유틸리티 타입의 내부 원리인 매핑된 타입을 이해하면 직접 커스텀 타입도 설계할 수 있습니다. 다음 챕터에서는 타입 좁히기를 학습하여, 유니온 타입에서 조건 분기로 정확한 타입을 추론하는 기법을 다룹니다.">
         <h2>Chapter 6 요약</h2>
         <div class="key-point">
           <h3>핵심 정리</h3>
