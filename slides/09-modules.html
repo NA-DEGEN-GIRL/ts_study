@@ -16,8 +16,8 @@
       <section>
         <div class="chapter-title">
           <div class="chapter-number">Chapter 9</div>
-          <h1>모듈 & 네임스페이스</h1>
-          <p class="subtitle">코드를 체계적으로 구성하는 방법</p>
+          <h1>모듈 (Module) & 네임스페이스 (Namespace)</h1>
+          <p class="subtitle">코드를 파일별로 나눠서 관리하기 위한 체계적 구성 방법</p>
           <br>
           <p>
             <span class="badge badge-blue">ES Modules</span>
@@ -31,10 +31,14 @@
       <!-- Slide 2: ES Modules 기초 -->
       <section>
         <h2>ES Modules 기초</h2>
+        <div class="tip" style="margin-bottom: 0.5em;">
+          <strong>왜 모듈이 필요할까요?</strong> 코드를 파일별로 나눠서 관리하기 위해서입니다. 모듈 없이 모든 코드를 한 파일에 넣으면, 변수 이름이 충돌하고, 코드를 찾기 어렵고, 여러 사람이 동시에 작업하기 힘들어집니다. 모듈은 각 파일을 독립적인 공간으로 만들어 이 문제를 해결합니다.
+        </div>
         <p>TypeScript는 ES Modules(ESM) 표준을 기반으로 모듈 시스템을 지원합니다.</p>
         <div class="fragment">
           <pre><code class="language-typescript" data-trim>
 // math.ts - 파일 하나가 곧 하나의 모듈
+// export(내보내기)로 다른 파일에서 사용할 수 있게 공개합니다
 export function add(a: number, b: number): number {
   return a + b;
 }
@@ -48,7 +52,7 @@ export const PI = 3.14159;
         </div>
         <div class="fragment">
           <pre><code class="language-typescript" data-trim>
-// app.ts - 다른 모듈에서 가져오기
+// app.ts - 다른 모듈에서 import(가져오기)
 import { add, multiply, PI } from './math';
 
 console.log(add(2, 3));       // 5
@@ -57,7 +61,7 @@ console.log(multiply(4, PI)); // 12.56636
         </div>
         <div class="key-point fragment">
           <h3>핵심</h3>
-          <p><code>export</code> 또는 <code>import</code>가 있는 파일은 자동으로 <strong>모듈</strong>로 취급됩니다. 없으면 전역 스크립트입니다.</p>
+          <p><code>export</code>(내보내기 - Export) 또는 <code>import</code>(가져오기 - Import)가 있는 파일은 자동으로 <strong>모듈</strong>로 취급됩니다. 없으면 전역 스크립트입니다.</p>
         </div>
       </section>
 
@@ -66,7 +70,7 @@ console.log(multiply(4, PI)); // 12.56636
         <h2>Named vs Default Exports</h2>
         <div class="two-columns">
           <div>
-            <h3>Named Export</h3>
+            <h3>Named Export (이름 지정 내보내기)</h3>
             <pre><code class="language-typescript" data-trim>
 // user.ts
 export interface User {
@@ -87,7 +91,7 @@ import { User, createUser }
             <p class="fragment"><span class="badge badge-green">여러 개 내보내기 가능</span></p>
           </div>
           <div>
-            <h3>Default Export</h3>
+            <h3>Default Export (기본 내보내기)</h3>
             <pre><code class="language-typescript" data-trim>
 // logger.ts
 export default class Logger {
@@ -133,14 +137,14 @@ export { API_URL, TIMEOUT };
 function internalHelper() { /* ... */ }
 export { internalHelper as helper };
 
-// 4. 타입만 내보내기 (런타임에 제거됨)
+// 4. 타입만 내보내기 (런타임, 즉 프로그램 실행 시점에 제거됨)
 export type { User };
-export interface { Config };
+export type { Config };
         </code></pre>
         <div class="fragment">
           <div class="key-point">
             <h3>type-only export</h3>
-            <p><code>export type</code>은 컴파일 후 완전히 제거됩니다. 번들 크기 최적화에 효과적!</p>
+            <p><code>export type</code>은 컴파일 타임 (Compile Time, 코드 변환 시점)에만 사용되고 실행 파일에서 완전히 제거됩니다. 번들 크기 최적화에 효과적!</p>
           </div>
         </div>
       </section>
@@ -160,7 +164,8 @@ export interface Post { id: number; title: string; authorId: number; }
 export interface Comment { id: number; body: string; postId: number; }
         </code></pre>
         <pre class="fragment"><code class="language-typescript" data-trim>
-// models/index.ts - 배럴(barrel) 파일
+// models/index.ts - 배럴 파일 (Barrel File)
+// 여러 모듈을 하나의 진입점에서 모아서 다시 내보내는 파일
 export { User } from './user';
 export { Post } from './post';
 export { Comment } from './comment';
@@ -176,21 +181,23 @@ export { Post as BlogPost } from './post';
 import { User, Post, Comment } from './models';
         </code></pre>
         <div class="warning fragment">
-          <strong>주의:</strong> 배럴 파일이 깊게 중첩되면 순환 의존성(circular dependency) 문제가 발생할 수 있습니다.
+          <strong>주의:</strong> 배럴 파일 (Barrel File)이 깊게 중첩되면 순환 의존성(circular dependency, A가 B를 참조하고 B가 다시 A를 참조하는 상황) 문제가 발생할 수 있습니다.
         </div>
       </section>
 
       <!-- Slide 6: Dynamic Imports -->
       <section>
         <h2>Dynamic Imports</h2>
-        <p>런타임에 조건부로 모듈을 로드하는 <code>import()</code> 표현식</p>
+        <p>런타임 (Runtime, 프로그램 실행 시점)에 조건부로 모듈을 로드하는 <code>import()</code> 표현식</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
-// 코드 스플리팅: 필요할 때만 로드
+// 코드 스플리팅: 필요할 때만 해당 모듈을 로드
 async function loadChart(type: string) {
   if (type === 'bar') {
+    // 막대 차트가 필요한 순간에만 불러옴
     const { BarChart } = await import('./charts/bar-chart');
     return new BarChart();
   } else {
+    // 선형 차트가 필요한 순간에만 불러옴
     const { LineChart } = await import('./charts/line-chart');
     return new LineChart();
   }
@@ -269,8 +276,8 @@ import { lodash } from 'lodash';
 
       <!-- Slide 8: Declaration Files (.d.ts) -->
       <section>
-        <h2>Declaration Files (.d.ts)</h2>
-        <p>JavaScript 라이브러리에 타입 정보를 제공하는 선언 파일</p>
+        <h2>선언 파일 (Declaration File) - .d.ts</h2>
+        <p>JavaScript 라이브러리에 타입 정보를 제공하는 파일입니다. <code>declare</code> 키워드는 "이런 타입이 존재한다"고 TypeScript에 알려주는 역할을 합니다.</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
 // types/math-lib.d.ts
 declare module 'math-lib' {
@@ -334,8 +341,8 @@ app.get('/users/:id', (req: Request, res: Response) => {
 
       <!-- Slide 10: Ambient Modules -->
       <section>
-        <h2>Ambient Modules (declare module)</h2>
-        <p>비-JS 파일이나 타입이 없는 모듈에 타입을 선언하기</p>
+        <h2>앰비언트 모듈 (Ambient Module) - declare module</h2>
+        <p>비-JS 파일이나 타입이 없는 모듈에 "이런 타입이 존재한다"고 선언하기</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
 // global.d.ts - 비-JS 파일용 타입 선언
 
@@ -375,8 +382,8 @@ declare module '*.json' {
 
       <!-- Slide 11: Namespaces -->
       <section>
-        <h2>Namespaces</h2>
-        <p>관련된 코드를 논리적으로 그룹화하는 TypeScript 고유 기능</p>
+        <h2>네임스페이스 (Namespace)</h2>
+        <p>관련된 코드를 하나의 이름 아래 논리적으로 그룹화하는 TypeScript 고유 기능. 같은 이름의 변수/함수가 충돌하지 않도록 "이름 공간"을 만들어 줍니다.</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
 namespace Validation {
   // 외부에 공개
@@ -545,8 +552,8 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
               <ul>
                 <li class="fragment"><strong>Named Export</strong> - 여러 값 내보내기, 권장</li>
                 <li class="fragment"><strong>Default Export</strong> - 파일당 하나</li>
-                <li class="fragment"><strong>Re-export</strong> - 배럴 파일로 정리</li>
-                <li class="fragment"><strong>Dynamic Import</strong> - 코드 스플리팅</li>
+                <li class="fragment"><strong>Re-export</strong> - 배럴 파일 (Barrel File)로 정리</li>
+                <li class="fragment"><strong>Dynamic Import</strong> - 코드 스플리팅(필요한 시점에 로드)</li>
                 <li class="fragment"><strong>Module Resolution</strong> - bundler 권장</li>
               </ul>
             </div>
@@ -555,7 +562,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
             <div class="key-point">
               <h3>타입 선언</h3>
               <ul>
-                <li class="fragment"><strong>.d.ts</strong> - 타입 선언 파일</li>
+                <li class="fragment"><strong>.d.ts</strong> - 선언 파일 (Declaration File)</li>
                 <li class="fragment"><strong>@types</strong> - 커뮤니티 타입</li>
                 <li class="fragment"><strong>declare module</strong> - 직접 선언</li>
                 <li class="fragment"><strong>Module Augmentation</strong> - 타입 확장</li>

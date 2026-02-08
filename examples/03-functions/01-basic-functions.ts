@@ -2,8 +2,12 @@
  * Chapter 03 - Functions
  * 01-basic-functions.ts - 함수의 기본
  *
- * TypeScript에서 함수의 타입을 지정하는 방법을 학습합니다.
- * 함수 선언, 화살표 함수, 매개변수와 반환 타입을 다룹니다.
+ * 이 파일에서 배울 내용:
+ * - 함수 타입 지정 - 매개변수 (Parameter)와 반환 타입 (Return Type) 명시
+ * - 화살표 함수 (Arrow Function) - 간결한 함수 표현식
+ * - void 타입 - 반환값이 없는 함수
+ * - 함수 타입 별칭 (Type Alias) - 재사용 가능한 함수 시그니처
+ * - 고차 함수 (Higher-Order Function) - 함수를 받거나 반환하는 함수
  */
 
 console.log("=== TypeScript 함수의 기본 ===\n");
@@ -23,8 +27,8 @@ function greet(name: string): string {
   return `안녕하세요, ${name}님!`;
 }
 
-console.log(`5 + 3 = ${add(5, 3)}`);
-console.log(greet("김철수"));
+console.log(`덧셈 결과: 5 + 3 = ${add(5, 3)}`);
+console.log(`인사 메시지: ${greet("김철수")}`);
 
 // ============================================
 // 2. 반환 타입 추론
@@ -42,8 +46,8 @@ function divide(a: number, b: number): number {
   return a / b;
 }
 
-console.log(`6 × 7 = ${multiply(6, 7)}`);
-console.log(`100 ÷ 4 = ${divide(100, 4)}`);
+console.log(`곱셈 결과: 6 × 7 = ${multiply(6, 7)}`);
+console.log(`나눗셈 결과: 100 ÷ 4 = ${divide(100, 4)}`);
 
 // ============================================
 // 3. 화살표 함수 (Arrow Functions)

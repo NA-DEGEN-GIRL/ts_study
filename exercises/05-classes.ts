@@ -12,36 +12,44 @@
 // TODO: BankAccount 클래스를 만드세요
 // private balance(number), public accountHolder(string), readonly accountNumber(string)
 // 메서드: deposit(amount), withdraw(amount), getBalance()
+// private은 클래스 내부에서만 접근 가능, public은 어디서나 접근 가능
+// readonly는 초기화 후 변경 불가능
 class BankAccount {
   // 여기에 구현하세요
 }
 
 // 연습 2: 추상 클래스
 // TODO: 추상 클래스 Shape를 만드세요
+// abstract 키워드로 추상 클래스와 추상 메서드를 정의합니다
 // 추상 메서드: getArea(), getPerimeter()
 // 일반 메서드: describe() - 이름과 면적을 출력
+// 추상 클래스는 직접 인스턴스를 만들 수 없고, 상속받아 구현해야 합니다
 abstract class Shape {
   // 여기에 구현하세요
 }
 
 // TODO: Rectangle 클래스로 Shape를 구현하세요
+// extends 키워드로 상속받고, 추상 메서드를 모두 구현해야 합니다
 class Rectangle {
   // 여기에 구현하세요
 }
 
-// 연습 3: 인터페이스 구현
+// 연습 3: 인터페이스 (Interface) 구현
 // TODO: Printable 인터페이스를 정의하세요
+// print(): void 메서드를 가집니다
 interface Printable {
   // print(): void 메서드
 }
 
 // TODO: Document 클래스가 Printable을 구현하도록 하세요
+// implements 키워드로 인터페이스를 구현합니다
 class Document {
   // 여기에 구현하세요
 }
 
 // 연습 4: Getter와 Setter
 // TODO: 온도를 섭씨와 화씨로 관리하는 Temperature 클래스를 만드세요
+// get과 set 키워드로 접근자 속성을 정의합니다
 // private celsius 속성
 // get/set fahrenheit (화씨 = 섭씨 * 9/5 + 32)
 class Temperature {
@@ -50,6 +58,7 @@ class Temperature {
 
 // 연습 5: Static 멤버
 // TODO: Counter 클래스에 static 속성과 메서드를 추가하세요
+// static 키워드로 클래스 레벨의 속성과 메서드를 정의합니다
 // static count: 전체 카운터 개수
 // increment(), decrement(): 인스턴스 카운터
 // static getTotalCount(): 전체 카운터 반환

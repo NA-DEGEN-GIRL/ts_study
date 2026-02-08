@@ -2,19 +2,24 @@
  * Chapter 03 - Functions
  * 03-overloads.ts - 함수 오버로딩
  *
- * TypeScript의 함수 오버로딩을 학습합니다.
- * 여러 개의 함수 시그니처를 정의하여 다양한 매개변수 조합을 처리합니다.
+ * 이 파일에서 배울 내용:
+ * - 함수 오버로딩 (Function Overload) - 같은 이름의 함수에 여러 시그니처 (Signature) 정의
+ * - 오버로드 시그니처와 구현 시그니처의 차이
+ * - 입력 타입에 따라 다른 반환 타입 지정
+ * - 매개변수 개수가 다른 오버로딩
+ * 왜 필요한가? 하나의 함수가 다양한 입력을 안전하게 처리 가능
  */
 
 console.log("=== 함수 오버로딩 (Function Overloads) ===\n");
 
 // ============================================
-// 1. 기본 함수 오버로딩
+// 1. 기본 함수 오버로딩 (Overload) - 입력 타입별로 다른 시그니처 제공
 // ============================================
 
 console.log("--- 1. 기본 오버로딩 ---\n");
+// 왜 필요한가? string + string과 number + number를 다르게 처리
 
-// 오버로드 시그니처들
+// 오버로드 시그니처 (Overload Signature)들
 function combine(a: string, b: string): string;
 function combine(a: number, b: number): number;
 

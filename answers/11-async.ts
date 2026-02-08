@@ -2,14 +2,15 @@
  * 챕터 11: 비동기 프로그래밍 - 정답
  *
  * 이 챕터에서는 TypeScript에서 비동기 코드를 타입 안전하게 작성하는 방법을 학습합니다:
- * - Promise 타이핑
+ * - 프로미스 (Promise) 타이핑
  * - async/await
  * - 에러 처리
- * - Promise 조합
+ * - 프로미스 조합
  */
 
-// 연습 1: Promise 타이핑
-// 해설: Promise<T>의 제네릭 타입으로 resolve될 값의 타입을 지정합니다
+// 연습 1: 프로미스 (Promise) 타이핑
+// 풀이: Promise<T>의 제네릭 타입 (Generic)으로 resolve될 값의 타입을 지정합니다
+// Promise<User>는 이 Promise가 성공하면 User 타입의 값을 반환한다는 의미입니다
 interface User {
   id: number;
   name: string;
@@ -29,7 +30,8 @@ function fetchUser(id: number): Promise<User> {
 }
 
 // 연습 2: async/await 사용
-// 해설: async 함수는 자동으로 Promise를 반환합니다
+// 풀이: async 함수는 자동으로 Promise를 반환합니다
+// await 키워드로 Promise가 완료될 때까지 기다리고, 결과값을 받아옵니다
 async function getUserProfile(userId: number): Promise<string> {
   const user = await fetchUser(userId);
   return `${user.name} (${user.email})`;
@@ -57,14 +59,16 @@ async function fetchData(url: string): Promise<ApiResponse<any>> {
 }
 
 // 연습 4: Promise.all로 병렬 실행
-// 해설: Promise.all은 Promise 배열을 받아서 모든 결과의 배열을 반환합니다
+// 풀이: Promise.all은 Promise 배열을 받아서 모든 결과의 배열을 반환합니다
+// 여러 비동기 작업을 동시에 실행하여 성능을 향상시킬 수 있습니다
 async function fetchMultipleUsers(ids: number[]): Promise<User[]> {
   const promises = ids.map(id => fetchUser(id));
   return Promise.all(promises);
 }
 
-// 연습 5: 커스텀 타입 가드로 에러 처리
-// 해설: instanceof로 Error 타입인지 확인하는 타입 가드
+// 연습 5: 커스텀 타입 가드 (Type Guard)로 에러 처리
+// 풀이: instanceof로 Error 타입인지 확인하는 타입 가드
+// unknown 타입의 에러를 안전하게 처리할 수 있습니다
 function isError(error: unknown): error is Error {
   return error instanceof Error;
 }
@@ -89,7 +93,8 @@ async function safeApiCall(url: string): Promise<string> {
 }
 
 // 연습 6: Retry 로직 (고급)
-// 해설: 제네릭과 async/await를 사용하여 재시도 로직을 구현합니다
+// 풀이: 제네릭 (Generic)과 async/await를 사용하여 재시도 로직을 구현합니다
+// 실패 시 자동으로 재시도하는 패턴은 네트워크 요청 등에서 유용합니다
 async function retry<T>(
   fn: () => Promise<T>,
   maxAttempts: number = 3

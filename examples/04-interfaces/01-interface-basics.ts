@@ -2,8 +2,12 @@
  * Chapter 04 - Interfaces
  * 01-interface-basics.ts - 인터페이스 기초
  *
- * 인터페이스의 기본 개념과 사용법을 학습합니다.
- * 선택적 속성, 읽기 전용 속성, 인덱스 시그니처를 다룹니다.
+ * 이 파일에서 배울 내용:
+ * - 인터페이스 (Interface) - 객체의 구조를 정의하는 타입
+ * - 선택적 속성 (Optional Property) - ? 기호로 생략 가능한 속성
+ * - 읽기 전용 속성 (Readonly Property) - 수정 불가능한 속성
+ * - 인덱스 시그니처 (Index Signature) - 동적 속성 이름 허용
+ * 왜 필요한가? 객체 구조를 명확히 정의하여 타입 안정성 확보
  */
 
 console.log("=== 인터페이스 기초 ===\n");

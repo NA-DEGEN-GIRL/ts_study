@@ -2,8 +2,12 @@
  * Chapter 02 - Basic Types
  * 01-primitives.ts - 기본 타입들 (Primitive Types)
  *
- * TypeScript의 기본 타입인 string, number, boolean을 학습합니다.
- * JavaScript의 원시 타입과 동일하지만 타입 안정성이 추가됩니다.
+ * 이 파일에서 배울 내용:
+ * - 기본 타입 (Primitive Type) - string, number, boolean
+ * - 템플릿 리터럴 (Template Literal) - 백틱(`)으로 문자열 보간
+ * - 다양한 진법 표현 - 16진수(0x), 2진수(0b), 8진수(0o)
+ * - 타입 변환 (Type Conversion) - Number(), String(), toString()
+ * 왜 필요한가? 값의 타입을 명확히 하여 의도하지 않은 연산 방지
  */
 
 console.log("=== TypeScript 기본 타입 (Primitives) ===\n");
@@ -49,7 +53,7 @@ let octal: number = 0o377; // 8진수
 console.log(`정수: ${integer}`);
 console.log(`실수: ${float}`);
 console.log(`음수: ${negative}`);
-console.log(`진법 변환 예제: ${decimal} = 0x${hex.toString(16)} = 0b${binary.toString(2)}`);
+console.log(`진법 변환 (10진수 → 16진수, 2진수): ${decimal} = 0x${hex.toString(16)} = 0b${binary.toString(2)}`);
 
 // 특수한 숫자 값
 let infinity: number = Infinity;

@@ -1,8 +1,12 @@
 /**
  * Chapter 11-01: Promise<T> 기본
  *
- * TypeScript에서 Promise를 생성하고 사용하는 방법을 학습합니다.
- * 제네릭 타입으로 Promise의 반환 타입을 명시할 수 있습니다.
+ * 이 파일에서 배울 내용:
+ * - 프로미스 (Promise) - 비동기 작업의 완료 또는 실패를 나타내는 객체
+ * - Promise<T> 제네릭 (Generic) - 프로미스가 반환할 값의 타입 지정
+ * - then, catch, finally - 프로미스 핸들러 (Handler)
+ * - Promise 체이닝 (Chaining) - 여러 비동기 작업을 순차적으로 연결
+ * 왜 필요한가? 비동기 작업(API 호출, 파일 읽기 등)을 타입 안전하게 처리
  */
 
 console.log("=== Promise 기본 예제 ===\n");

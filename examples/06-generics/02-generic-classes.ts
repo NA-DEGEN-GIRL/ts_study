@@ -2,8 +2,12 @@
  * Chapter 06 - Generics
  * 02-generic-classes.ts - 제네릭 클래스
  *
- * 제네릭을 사용하는 클래스를 학습합니다.
- * 타입 안전한 데이터 구조를 만드는 방법을 다룹니다.
+ * 이 파일에서 배울 내용:
+ * - 제네릭 클래스 (Generic Class) - 클래스 (Class) 선언 시 타입 매개변수 사용
+ * - 타입 안전한 컬렉션 (Collection) - Stack, Queue 등의 자료구조
+ * - 다중 제네릭 타입 - <K, V> 형태로 여러 타입 매개변수
+ * - 제네릭 제약 (Generic Constraint) - extends로 타입 범위 제한
+ * 왜 필요한가? 재사용 가능하고 타입 안전한 클래스 구현
  */
 
 console.log("=== 제네릭 클래스 (Generic Classes) ===\n");

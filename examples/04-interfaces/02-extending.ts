@@ -2,8 +2,12 @@
  * Chapter 04 - Interfaces
  * 02-extending.ts - 인터페이스 확장
  *
- * 인터페이스를 확장하여 재사용성을 높이는 방법을 학습합니다.
- * 단일 확장, 다중 확장, 선언 병합을 다룹니다.
+ * 이 파일에서 배울 내용:
+ * - 인터페이스 확장 (Interface Extending) - extends 키워드로 기존 인터페이스 (Interface) 상속
+ * - 다중 확장 - 여러 인터페이스를 동시에 확장
+ * - 선언 병합 (Declaration Merging) - 같은 이름의 인터페이스 자동 병합
+ * - 속성 재정의 (Property Override) - 확장 시 타입 좁히기
+ * 왜 필요한가? 코드 재사용과 타입 계층 구조 구현
  */
 
 console.log("=== 인터페이스 확장 (Extending Interfaces) ===\n");

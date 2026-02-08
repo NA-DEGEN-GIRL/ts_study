@@ -16,8 +16,8 @@
       <!-- Slide 1: Title -->
       <section class="chapter-title" data-transition="zoom">
         <span class="chapter-number">Chapter 04</span>
-        <h1>인터페이스 &amp; 타입 별칭</h1>
-        <p class="subtitle">복잡한 타입 구조를 우아하게 정의하는 방법</p>
+        <h1>인터페이스 (Interface) &amp; 타입 별칭 (Type Alias)</h1>
+        <p class="subtitle">복잡한 타입 (Type) 구조를 우아하게 정의하는 방법</p>
         <br>
         <p><a href="../index.html" style="color: #888; font-size: 0.6em;">&#8592; 목차로 돌아가기</a></p>
       </section>
@@ -28,16 +28,17 @@
         <div class="key-point">
           <h3>핵심 개념</h3>
           <p>인터페이스는 <strong>객체의 구조(shape)</strong>를 정의합니다.<br>
-          어떤 속성이 어떤 타입을 가져야 하는지 계약(contract)을 만듭니다.</p>
+          어떤 프로퍼티 (Property, 속성)가 어떤 타입을 가져야 하는지 계약(contract)을 만듭니다.</p>
+          <p style="font-size: 0.85em;">인터페이스는 계약서와 같습니다 - "이 객체는 반드시 이런 형태를 가져야 해"라고 정의하는 것입니다.</p>
         </div>
-        <pre><code class="language-typescript">// 인터페이스 정의
+        <pre><code class="language-typescript">// 인터페이스 정의: "User는 이런 형태여야 한다"
 interface User {
-  name: string;
-  age: number;
-  email: string;
+  name: string;   // 이름은 문자열
+  age: number;    // 나이는 숫자
+  email: string;  // 이메일은 문자열
 }
 
-// 인터페이스에 맞는 객체 생성
+// 인터페이스에 맞는 객체 생성 (모든 속성을 빠짐없이 포함해야 함)
 const user: User = {
   name: "홍길동",
   age: 25,
@@ -61,7 +62,7 @@ const also_bad: User = {
 
       <!-- Slide 3: Optional Properties -->
       <section data-transition="slide">
-        <h2>선택적 속성 (Optional Properties)</h2>
+        <h2>선택적 속성 (Optional Property)</h2>
         <pre><code class="language-typescript">// ? 를 붙이면 선택적 속성
 interface User {
   name: string;
@@ -127,11 +128,12 @@ function movePoint(point: Point, dx: number, dy: number): Point {
 
       <!-- Slide 5: Index Signatures -->
       <section data-transition="slide">
-        <h2>인덱스 시그니처</h2>
-        <p>동적 속성 이름을 가진 객체 타입 정의</p>
-        <pre><code class="language-typescript">// 문자열 키에 대한 인덱스 시그니처
+        <h2>인덱스 시그니처 (Index Signature)</h2>
+        <p>동적 속성 이름을 가진 객체 타입을 정의합니다.<br>
+        <span style="font-size: 0.8em; color: #aaa;">속성 이름을 미리 알 수 없을 때, "어떤 이름이든 이 타입의 값을 가진다"고 정의하는 방법입니다.</span></p>
+        <pre><code class="language-typescript">// 문자열 키에 대한 인덱스 시그니처: [키이름: 키타입]: 값타입
 interface Dictionary {
-  [key: string]: string;
+  [key: string]: string; // 어떤 문자열 키든, 값은 문자열
 }
 
 const translations: Dictionary = {
@@ -167,16 +169,16 @@ const response: ApiResponse = {
       <!-- Slide 6: Extending Interfaces -->
       <section data-transition="slide">
         <h2>인터페이스 확장 (extends)</h2>
-        <pre><code class="language-typescript">// 기본 인터페이스
+        <pre><code class="language-typescript">// 기본 인터페이스 (부모 역할)
 interface Animal {
-  name: string;
-  age: number;
+  name: string;  // 동물 이름
+  age: number;   // 동물 나이
 }
 
-// 확장: 기존 속성 + 새 속성
+// 확장: Animal의 속성을 물려받고 + 새 속성 추가
 interface Dog extends Animal {
-  breed: string;
-  bark(): void;
+  breed: string;   // 견종 (Dog만의 속성)
+  bark(): void;    // 짖기 메서드 (Method, 객체에 속한 함수)
 }
 
 interface Cat extends Animal {
@@ -222,17 +224,18 @@ interface Counter {
   reset(): void;             // 메서드도 가짐
 }
 
-// 클래스에서 인터페이스 구현
+// 클래스에서 인터페이스 구현 (implements: "이 계약을 지키겠다")
 interface Printable {
-  print(): string;
+  print(): string;    // 출력 기능을 반드시 구현해야 함
 }
 
 interface Loggable {
-  log(level: string): void;
+  log(level: string): void;  // 로그 기능을 반드시 구현해야 함
 }
 
+// 두 인터페이스를 모두 구현하는 클래스
 class Document implements Printable, Loggable {
-  constructor(private content: string) {}
+  constructor(private content: string) {} // 인스턴스 (Instance) 생성 시 내용 전달
 
   print(): string {
     return this.content;
@@ -246,25 +249,26 @@ class Document implements Printable, Loggable {
 
       <!-- Slide 8: Type Aliases -->
       <section data-transition="slide">
-        <h2>타입 별칭 (Type Aliases)</h2>
-        <pre><code class="language-typescript">// 객체 타입 별칭
+        <h2>타입 별칭 (Type Alias)</h2>
+        <p style="font-size: 0.85em; color: #aaa;">타입 별칭이란 복잡한 타입에 짧은 이름을 붙여주는 것입니다. <code>type</code> 키워드를 사용합니다.</p>
+        <pre><code class="language-typescript">// 객체 타입 별칭: type 이름 = { ... }
 type Point = {
   x: number;
   y: number;
 };
 
-// 원시 타입 별칭
-type ID = string | number;
-type Name = string;
+// 원시 타입 별칭 (간단한 타입에 의미 있는 이름 부여)
+type ID = string | number;        // ID는 문자열이거나 숫자
+type Name = string;                // Name은 문자열
 
-// 튜플 타입 별칭
-type Coordinate = [number, number];
+// 튜플 (Tuple) 타입 별칭
+type Coordinate = [number, number]; // 좌표는 숫자 2개의 쌍
 
 // 함수 타입 별칭
-type Formatter = (value: number) => string;
+type Formatter = (value: number) => string; // 숫자를 문자열로 변환하는 함수
 
-// 유니온 타입 별칭
-type Status = "active" | "inactive" | "pending";
+// 유니온 (Union) 타입 별칭
+type Status = "active" | "inactive" | "pending"; // 3가지 중 하나
 type Theme = "light" | "dark";
 
 // 복합 타입 별칭
@@ -343,7 +347,8 @@ const user: User = {
       <!-- Slide 10: Declaration Merging -->
       <section data-transition="slide">
         <h2>선언 병합 (Declaration Merging)</h2>
-        <p>interface만의 고유 기능: 같은 이름으로 여러 번 선언하면 자동 병합</p>
+        <p>interface만의 고유 기능: 같은 이름으로 여러 번 선언하면 자동으로 합쳐집니다.<br>
+        <span style="font-size: 0.8em; color: #aaa;">마치 문서에 내용을 추가하듯, 기존 인터페이스에 새 속성을 덧붙일 수 있습니다.</span></p>
         <pre><code class="language-typescript">// 선언 1
 interface Window {
   title: string;
@@ -381,7 +386,7 @@ declare global {
       <!-- Slide 11: Union Types with Type Aliases -->
       <section data-transition="slide">
         <h2>유니온 타입과 타입 별칭</h2>
-        <pre><code class="language-typescript">// 문자열 리터럴 유니온
+        <pre><code class="language-typescript">// 문자열 리터럴 (Literal) 유니온: 허용되는 값을 나열
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 type StatusCode = 200 | 201 | 400 | 401 | 403 | 404 | 500;
 
@@ -415,8 +420,9 @@ function divide(a: number, b: number): Result&lt;number&gt; {
 
       <!-- Slide 12: Intersection Types -->
       <section data-transition="slide">
-        <h2>교차 타입 (Intersection Types)</h2>
-        <p><code>&amp;</code>로 여러 타입을 합쳐 모든 속성을 가진 타입 생성</p>
+        <h2>교차 타입 (Intersection Type)</h2>
+        <p><code>&amp;</code>로 여러 타입을 합쳐 <strong>모든 속성을 동시에 가진</strong> 타입을 생성합니다.<br>
+        <span style="font-size: 0.8em; color: #aaa;">유니온(<code>|</code>)이 "이것 또는 저것"이라면, 인터섹션(<code>&amp;</code>)은 "이것 그리고 저것 모두"입니다.</span></p>
         <pre><code class="language-typescript">// 기본 교차 타입
 type HasName = { name: string };
 type HasAge = { age: number };
@@ -454,19 +460,20 @@ type User = BaseEntity &amp; {
 
       <!-- Slide 13: Discriminated Unions -->
       <section data-transition="slide">
-        <h2>판별 유니온 (Discriminated Unions)</h2>
+        <h2>판별 유니온 (Discriminated Union)</h2>
         <div class="key-point">
           <h3>핵심 패턴</h3>
-          <p>공통 판별 속성(discriminant)으로 유니온 멤버를 구분하는 패턴.<br>
-          TypeScript에서 가장 강력하고 자주 사용되는 패턴 중 하나입니다.</p>
+          <p>공통 판별 속성(discriminant, 구분자)으로 유니온 멤버를 구분하는 패턴입니다.<br>
+          <span style="font-size: 0.9em;">택배 상자에 "종류" 라벨을 붙여서, 라벨만 보고 내용물의 타입을 알 수 있는 것과 같습니다.</span></p>
         </div>
-        <pre><code class="language-typescript">// 판별 속성: type (각 멤버에서 다른 리터럴 값)
+        <pre><code class="language-typescript">// 판별 속성: type (각 멤버마다 다른 리터럴 값을 가짐 -> 이걸로 구분)
 type Action =
   | { type: "LOGIN"; payload: { username: string; password: string } }
   | { type: "LOGOUT" }
   | { type: "FETCH_DATA"; payload: { url: string } }
   | { type: "SET_ERROR"; payload: { message: string } };
 
+// state: any는 예시를 간단히 하기 위한 것 (실제로는 구체적 타입 권장)
 function reducer(state: any, action: Action) {
   switch (action.type) {
     case "LOGIN":
@@ -528,7 +535,8 @@ function processPayment(method: PaymentMethod): void {
 
       <!-- Slide 15: Utility Types - Partial, Required -->
       <section data-transition="slide">
-        <h2>유틸리티 타입: Partial, Required</h2>
+        <h2>유틸리티 타입 (Utility Type): Partial, Required</h2>
+        <p style="font-size: 0.85em; color: #aaa;">유틸리티 타입이란 TypeScript가 기본 제공하는 "타입 변환 도구"입니다. 기존 타입을 변형해서 새 타입을 만듭니다.</p>
         <pre><code class="language-typescript">interface User {
   id: string;
   name: string;
@@ -536,20 +544,20 @@ function processPayment(method: PaymentMethod): void {
   age: number;
 }
 
-// Partial&lt;T&gt; - 모든 속성을 선택적으로
+// Partial&lt;T&gt; - 모든 속성을 선택적(?)으로 바꿈
 type PartialUser = Partial&lt;User&gt;;
 // { id?: string; name?: string; email?: string; age?: number; }
 
-// 업데이트 함수에서 유용
+// 업데이트 함수에서 유용: 바꾸고 싶은 속성만 전달하면 됨
 function updateUser(id: string, updates: Partial&lt;User&gt;): User {
-  const user = getUserById(id);
-  return { ...user, ...updates };
+  const user = getUserById(id);  // 기존 사용자 조회
+  return { ...user, ...updates }; // 기존 값에 변경사항 덮어쓰기
 }
 
-updateUser("1", { name: "새 이름" });        // name만 변경
+updateUser("1", { name: "새 이름" });        // name만 변경 (나머지는 그대로)
 updateUser("1", { email: "new@email.com" }); // email만 변경
 
-// Required&lt;T&gt; - 모든 속성을 필수로
+// Required&lt;T&gt; - 모든 속성을 필수로 (선택적 ? 제거)
 interface Config {
   host?: string;
   port?: number;
@@ -577,11 +585,11 @@ function startServer(config: Required&lt;Config&gt;): void {
   updatedAt: Date;
 }
 
-// Pick&lt;T, K&gt; - 특정 속성만 선택
+// Pick&lt;T, K&gt; - 특정 속성만 골라내기 ("이것만 가져올래")
 type UserProfile = Pick&lt;User, "id" | "name" | "email"&gt;;
-// { id: string; name: string; email: string; }
+// { id: string; name: string; email: string; } -- 3개만 선택
 
-// Omit&lt;T, K&gt; - 특정 속성만 제외
+// Omit&lt;T, K&gt; - 특정 속성만 제외하기 ("이것만 빼줘")
 type UserWithoutPassword = Omit&lt;User, "password"&gt;;
 // { id: string; name: string; email: string; createdAt: Date; updatedAt: Date; }
 
@@ -607,7 +615,7 @@ function createUser(data: CreateUserRequest): UserResponse {
       <!-- Slide 17: More Utility Types -->
       <section data-transition="slide">
         <h2>유틸리티 타입: Record, Readonly</h2>
-        <pre><code class="language-typescript">// Record&lt;K, V&gt; - 키 타입과 값 타입으로 객체 타입 생성
+        <pre><code class="language-typescript">// Record&lt;K, V&gt; - 키(K) 타입과 값(V) 타입으로 객체 타입 생성 (사전처럼)
 type Role = "admin" | "editor" | "viewer";
 
 const permissions: Record&lt;Role, string[]&gt; = {
@@ -667,7 +675,8 @@ interface Post extends BaseEntity {
   status: "draft" | "published" | "archived";
 }
 
-// Create 요청: id, 날짜 자동 생성이므로 제외
+// Create 요청: id, 날짜는 서버에서 자동 생성하므로 제외
+// DTO (Data Transfer Object): 데이터를 주고받을 때 사용하는 타입
 type CreateDTO&lt;T extends BaseEntity&gt; = Omit&lt;T, keyof BaseEntity&gt;;
 type UpdateDTO&lt;T extends BaseEntity&gt; = Partial&lt;CreateDTO&lt;T&gt;&gt;;
 

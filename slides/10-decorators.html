@@ -16,8 +16,9 @@
       <section>
         <div class="chapter-title">
           <div class="chapter-number">Chapter 10</div>
-          <h1>데코레이터 & 메타데이터</h1>
+          <h1>데코레이터 (Decorator) & 메타데이터 (Metadata)</h1>
           <p class="subtitle">선언적으로 코드에 기능을 추가하는 메타프로그래밍</p>
+          <p style="font-size: 0.7em; color: #aaa; margin-top: 0.5em;">데코레이터는 선물 포장과 같습니다 - 원래 기능은 그대로 두고 추가 기능을 감싸줍니다</p>
           <br>
           <p>
             <span class="badge badge-blue">@Decorator</span>
@@ -30,17 +31,20 @@
 
       <!-- Slide 2: What are decorators -->
       <section>
-        <h2>데코레이터란?</h2>
-        <p>클래스, 메서드, 프로퍼티 등에 <strong>선언적으로 부가 기능</strong>을 추가하는 특별한 함수</p>
+        <h2>데코레이터 (Decorator)란?</h2>
+        <p>클래스, 메서드, 프로퍼티 등에 <strong>선언적으로 부가 기능</strong>을 추가하는 특별한 함수입니다.</p>
+        <div class="tip" style="margin-bottom: 0.5em;">
+          <strong>비유로 이해하기:</strong> 데코레이터는 선물 포장과 같습니다. 선물(원래 코드)은 그대로인데, 포장지(데코레이터)를 감싸면 리본, 카드 등 추가 기능이 붙습니다. <code>@log</code>를 붙이면 실행 기록이, <code>@validate</code>를 붙이면 입력 검증이 자동으로 추가됩니다.
+        </div>
         <div class="fragment">
           <pre><code class="language-typescript" data-trim>
 // @ 기호를 사용하여 선언 위에 붙입니다
-@sealed
+@sealed    // 클래스 데코레이터: 클래스 전체에 기능 추가
 class BugReport {
-  @validate
+  @validate  // 프로퍼티 데코레이터: 속성에 기능 추가
   title: string;
 
-  @log
+  @log       // 메서드 데코레이터: 메서드에 기능 추가
   getTitle(): string {
     return this.title;
   }
@@ -51,8 +55,8 @@ class BugReport {
           <div class="key-point">
             <h3>데코레이터가 해결하는 문제</h3>
             <ul>
-              <li>횡단 관심사 (logging, validation)</li>
-              <li>보일러플레이트 코드 제거</li>
+              <li>횡단 관심사 (여러 곳에 반복되는 공통 기능: 로깅, 검증 등)</li>
+              <li>보일러플레이트 (Boilerplate, 반복되는 기본 코드) 제거</li>
               <li>선언적이고 읽기 쉬운 코드</li>
             </ul>
           </div>
@@ -308,7 +312,7 @@ service.createUser(null as any, 'test@test.com');
       <!-- Slide 8: Decorator Factories -->
       <section>
         <h2>데코레이터 팩토리</h2>
-        <p>매개변수를 받아 데코레이터를 반환하는 <strong>고차 함수</strong></p>
+        <p>매개변수를 받아 데코레이터를 반환하는 <strong>고차 함수</strong> (함수를 반환하는 함수)</p>
         <pre><code class="language-typescript" data-trim>
 // 데코레이터 팩토리: 인자를 받는 데코레이터
 function Component(options: { selector: string; template: string }) {
@@ -322,7 +326,8 @@ function Component(options: { selector: string; template: string }) {
 
 function Inject(serviceId: string) {
   return function (target: any, propertyKey: string) {
-    // 의존성 주입 로직
+    // 의존성 주입 (Dependency Injection) 로직
+    // 필요한 서비스를 외부에서 자동으로 연결해주는 패턴
     console.log(`${propertyKey}에 ${serviceId} 주입`);
   };
 }
@@ -386,14 +391,14 @@ class Example {
       <!-- Slide 10: reflect-metadata -->
       <section>
         <h2>reflect-metadata</h2>
-        <p>런타임에 타입 메타데이터를 저장하고 조회하는 라이브러리</p>
+        <p>런타임 (Runtime, 프로그램 실행 시점)에 타입 메타데이터 (Metadata, 코드에 대한 부가 정보)를 저장하고 조회하는 라이브러리</p>
         <pre class="fragment"><code class="language-bash" data-trim>
 npm install reflect-metadata
         </code></pre>
         <pre class="fragment"><code class="language-typescript" data-trim>
 import 'reflect-metadata';
 
-// 커스텀 메타데이터 저장
+// 커스텀 메타데이터 저장 (코드에 부가 정보 태그 붙이기)
 function Role(role: string) {
   return Reflect.metadata('role', role);
 }
@@ -412,7 +417,7 @@ class AdminController {
   getUser(id: string) { return {}; }
 }
 
-// 메타데이터 조회
+// 메타데이터 조회 (저장해둔 부가 정보 꺼내기)
 const role = Reflect.getMetadata('role', AdminController);
 console.log(role); // 'admin'
 
@@ -436,14 +441,15 @@ function measure(label?: string) {
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) {
-    const original = descriptor.value;
+    const original = descriptor.value;  // 원래 메서드 저장
     const name = label || propertyKey;
 
+    // 원래 메서드를 감싸서 시간 측정 기능 추가
     descriptor.value = async function (...args: any[]) {
-      const start = performance.now();
+      const start = performance.now();   // 시작 시간 기록
       try {
-        const result = await original.apply(this, args);
-        const elapsed = (performance.now() - start).toFixed(2);
+        const result = await original.apply(this, args); // 원래 메서드 실행
+        const elapsed = (performance.now() - start).toFixed(2); // 경과 시간 계산
         console.log(`[PERF] ${name}: ${elapsed}ms`);
         return result;
       } catch (error) {
@@ -477,9 +483,10 @@ class DataService {
 
       <!-- Slide 12: Real-world Validation & DI -->
       <section>
-        <h2>실전 패턴: 검증 & 의존성 주입</h2>
+        <h2>실전 패턴: 검증 & 의존성 주입 (Dependency Injection)</h2>
+        <p style="font-size: 0.8em; color: #aaa;">의존성 주입(DI)이란: 클래스가 필요로 하는 서비스(의존성)를 직접 생성하지 않고, 외부에서 자동으로 연결해주는 패턴입니다.</p>
         <pre><code class="language-typescript" data-trim>
-// 간단한 DI 컨테이너
+// 간단한 DI 컨테이너 (서비스들을 보관하고 연결해주는 저장소)
 const container = new Map&lt;string, any&gt;();
 
 function Injectable(target: any) {

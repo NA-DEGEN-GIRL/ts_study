@@ -10,6 +10,7 @@
 
 // 연습 1: Result 타입 (Rust-style 에러 처리)
 // TODO: 성공 또는 실패를 나타내는 Result 타입을 구현하세요
+// 판별 유니온 (Discriminated Union)으로 성공/실패를 명시적으로 처리합니다
 type Result<T, E = Error> =
   | { ok: true; value: T }
   | { ok: false; error: E };
@@ -27,12 +28,13 @@ function Err<E>(error: E): Result<never, E> {
 
 // TODO: Result를 사용하는 함수 예제
 function divide(a: number, b: number): Result<number, string> {
-  // 0으로 나누면 에러를 반환하세요
-  // 그렇지 않으면 결과를 반환하세요
+  // 0으로 나누면 Err를 반환하세요
+  // 그렇지 않으면 Ok를 반환하세요
 }
 
 // 연습 2: 타입 안전한 Event Emitter
 // TODO: 이벤트 이름과 페이로드를 타입 안전하게 관리하는 EventEmitter
+// 제네릭 (Generic)으로 이벤트 맵을 받아서 타입 안전한 이벤트 시스템을 구현합니다
 interface Events {
   userLogin: { userId: string; timestamp: Date };
   userLogout: { userId: string };
@@ -43,7 +45,7 @@ class TypeSafeEventEmitter<T extends Record<string, any>> {
   private listeners: { [K in keyof T]?: Array<(payload: T[K]) => void> } = {};
 
   // TODO: on 메서드를 구현하세요
-  // 이벤트 이름과 콜백 함수를 받아서 등록합니다
+  // 이벤트 이름과 콜백 (Callback) 함수를 받아서 등록합니다
   on<K extends keyof T>(event: K, callback: (payload: T[K]) => void): void {
     // 구현하세요
   }
@@ -63,6 +65,7 @@ class TypeSafeEventEmitter<T extends Record<string, any>> {
 
 // 연습 3: API 응답 타입
 // TODO: API 엔드포인트와 응답 타입을 매핑하는 시스템
+// 엔드포인트와 응답 타입을 매핑하여 타입 안전한 API 클라이언트를 만듭니다
 interface ApiEndpoints {
   "/users": User[];
   "/users/:id": User;
@@ -99,6 +102,7 @@ class ApiClient {
 
 // 연습 4: Builder 패턴
 // TODO: 복잡한 객체를 단계적으로 생성하는 Builder 패턴
+// Fluent API로 객체를 단계적으로 구성합니다
 interface HttpRequest {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -111,6 +115,7 @@ class HttpRequestBuilder {
   private request: Partial<HttpRequest> = {};
 
   // TODO: url 설정 메서드
+  // this를 반환하여 메서드 체이닝을 가능하게 합니다
   url(url: string): this {
     // 구현하세요
     return this;
@@ -145,6 +150,7 @@ class HttpRequestBuilder {
 
 // 연습 5: Branded Types (명목적 타이핑)
 // TODO: 런타임에는 같지만 컴파일 타임에는 다른 타입으로 취급되는 Branded Type
+// 구조적으로는 같지만 의미적으로 다른 타입을 구분합니다
 type Brand<K, T> = K & { __brand: T };
 
 type UserId = Brand<string, "UserId">;
@@ -162,6 +168,7 @@ function createProductId(id: string): ProductId {
 }
 
 // TODO: UserId만 받는 함수
+// ProductId를 전달하면 컴파일 에러가 발생합니다
 function getUserById(id: UserId): string {
   return `사용자 ${id} 조회`;
 }

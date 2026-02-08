@@ -2,8 +2,12 @@
  * Chapter 06 - Generics
  * 03-constraints.ts - 제네릭 제약 조건
  *
- * extends 키워드를 사용한 제네릭 제약 조건을 학습합니다.
- * 타입 매개변수에 조건을 추가하여 더 안전한 코드를 작성합니다.
+ * 이 파일에서 배울 내용:
+ * - 제네릭 제약 (Generic Constraint) - extends 키워드로 타입 매개변수 제한
+ * - keyof 연산자 - 객체의 모든 키를 유니온 (Union) 타입으로 추출
+ * - 타입 안전한 속성 접근 - K extends keyof T 패턴
+ * - 생성자 타입 (Constructor Type) - new (...args: any[]) => T 패턴
+ * 왜 필요한가? 제네릭 타입이 특정 속성이나 메서드를 가지도록 보장
  */
 
 console.log("=== 제네릭 제약 조건 (Generic Constraints) ===\n");

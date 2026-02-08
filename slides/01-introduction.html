@@ -27,13 +27,14 @@
         <h2>TypeScript란?</h2>
         <div class="key-point">
           <h3>핵심 정의</h3>
-          <p>TypeScript는 JavaScript의 <strong>상위 집합(Superset)</strong>으로,<br>
-          <strong>정적 타입 시스템</strong>을 추가한 프로그래밍 언어입니다.</p>
+          <p>TypeScript(TS)는 JavaScript(JS)의 <strong>상위 집합(Superset)</strong>으로,<br>
+          <strong>정적 타입 (Type) 시스템</strong>을 추가한 프로그래밍 언어입니다.</p>
+          <p style="font-size: 0.8em; color: #aaa;">쉽게 말해, "이 변수에는 숫자만 넣을 수 있어"처럼 <strong>데이터의 종류를 미리 정해두는 것</strong>입니다.</p>
         </div>
         <ul>
           <li class="fragment">Microsoft에서 2012년에 개발</li>
           <li class="fragment">모든 JavaScript 코드는 유효한 TypeScript 코드</li>
-          <li class="fragment">컴파일 시 순수 JavaScript로 변환</li>
+          <li class="fragment">컴파일 (Compile, 코드를 변환하는 과정) 시 순수 JavaScript로 변환</li>
           <li class="fragment">현재 가장 인기 있는 프로그래밍 언어 중 하나</li>
         </ul>
       </section>
@@ -59,10 +60,10 @@
           <div style="text-align: left; font-size: 0.85em; color: #ccc; line-height: 2;">
             <div>TypeScript = JavaScript +</div>
             <div style="padding-left: 20px; color: var(--ts-blue);">+ 타입 시스템</div>
-            <div style="padding-left: 20px; color: var(--ts-blue);">+ 인터페이스</div>
-            <div style="padding-left: 20px; color: var(--ts-blue);">+ 제네릭</div>
-            <div style="padding-left: 20px; color: var(--ts-blue);">+ 열거형</div>
-            <div style="padding-left: 20px; color: var(--ts-blue);">+ 데코레이터</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 인터페이스 (Interface)</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 제네릭 (Generic)</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 열거형 (Enum)</div>
+            <div style="padding-left: 20px; color: var(--ts-blue);">+ 데코레이터 (Decorator)</div>
           </div>
         </div>
       </section>
@@ -73,7 +74,7 @@
         <div class="two-columns">
           <div>
             <h3 style="color: var(--ts-red);">JavaScript의 문제점</h3>
-            <pre><code class="language-javascript">// 런타임에서야 에러 발견
+            <pre><code class="language-javascript">// 런타임 (Runtime, 프로그램 실행 중)에서야 에러 발견
 function add(a, b) {
   return a + b;
 }
@@ -88,7 +89,7 @@ console.log(user.naem); // undefined</code></pre>
           </div>
           <div>
             <h3 style="color: var(--ts-green);">TypeScript의 해결책</h3>
-            <pre><code class="language-typescript">// 컴파일 시점에 에러 감지
+            <pre><code class="language-typescript">// 컴파일 타임 (Compile Time, 코드를 변환하는 시점)에 에러 감지
 function add(a: number, b: number): number {
   return a + b;
 }
@@ -110,11 +111,11 @@ console.log(user.naem); // Error!</code></pre>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
           <div class="fragment key-point" style="padding: 15px 20px;">
             <h3 style="font-size: 0.9em;">IDE 지원 강화</h3>
-            <p style="font-size: 0.75em;">자동 완성, 리팩토링, 코드 내비게이션이 정확하게 동작</p>
+            <p style="font-size: 0.75em;">자동 완성, 리팩토링 (Refactoring, 코드 구조 개선), 코드 내비게이션이 정확하게 동작</p>
           </div>
           <div class="fragment key-point" style="padding: 15px 20px;">
             <h3 style="font-size: 0.9em;">버그 조기 발견</h3>
-            <p style="font-size: 0.75em;">런타임 전에 타입 에러, 오타, 잘못된 API 사용을 감지</p>
+            <p style="font-size: 0.75em;">런타임 전에 타입 에러, 오타, 잘못된 API(프로그램 간 연결 규약) 사용을 감지</p>
           </div>
           <div class="fragment key-point" style="padding: 15px 20px;">
             <h3 style="font-size: 0.9em;">살아있는 문서화</h3>
@@ -122,7 +123,7 @@ console.log(user.naem); // Error!</code></pre>
           </div>
           <div class="fragment key-point" style="padding: 15px 20px;">
             <h3 style="font-size: 0.9em;">안전한 리팩토링</h3>
-            <p style="font-size: 0.75em;">코드 변경 시 영향 범위를 컴파일러가 알려줌</p>
+            <p style="font-size: 0.75em;">코드 변경 시 영향 범위를 컴파일러 (Compiler, 코드 변환기)가 알려줌</p>
           </div>
         </div>
       </section>
@@ -183,7 +184,7 @@ npm install --save-dev ts-node</code></pre>
         <pre><code class="language-json">{
   "compilerOptions": {
     "target": "ES2020",          // 컴파일 대상 JS 버전
-    "module": "commonjs",        // 모듈 시스템
+    "module": "commonjs",        // 모듈 (Module) 시스템
     "strict": true,              // 엄격한 타입 체크
     "esModuleInterop": true,     // ES 모듈 호환성
     "outDir": "./dist",          // 출력 디렉토리
@@ -297,29 +298,30 @@ npx ts-node hello.ts  # 컴파일 + 실행 한 번에</code></pre>
         <div class="fragment key-point" style="margin-top: 30px;">
           <h3>핵심 포인트</h3>
           <p>타입 정보는 컴파일 후 <strong>완전히 제거</strong>됩니다.<br>
-          런타임에는 순수 JavaScript만 실행됩니다. (Zero Runtime Cost)</p>
+          런타임에는 순수 JavaScript만 실행됩니다. (Zero Runtime Cost - 실행 시 추가 비용 없음)</p>
         </div>
       </section>
 
       <!-- Slide 12: Type Annotations -->
       <section data-transition="slide">
-        <h2>타입 어노테이션 기초</h2>
-        <p>변수, 매개변수, 반환값에 타입을 명시적으로 지정</p>
-        <pre><code class="language-typescript">// 변수 타입 어노테이션
-let name: string = "김철수";
-let age: number = 25;
-let isStudent: boolean = true;
+        <h2>타입 어노테이션 (Type Annotation) 기초</h2>
+        <p>변수, 매개변수 (Parameter), 반환값에 타입을 명시적으로 지정합니다.<br>
+        <span style="font-size: 0.8em; color: #aaa;">어노테이션이란 "주석을 달다"라는 뜻으로, 변수 옆에 <code>: 타입</code>을 붙여서 "이 변수는 이 타입이야"라고 표시하는 것입니다.</span></p>
+        <pre><code class="language-typescript">// 변수 타입 어노테이션: 변수명 뒤에 ": 타입"을 붙임
+let name: string = "김철수";  // name에는 문자열만 넣을 수 있음
+let age: number = 25;          // age에는 숫자만 넣을 수 있음
+let isStudent: boolean = true; // isStudent에는 true/false만 넣을 수 있음
 
-// 배열 타입
-let scores: number[] = [90, 85, 92];
-let names: string[] = ["Alice", "Bob"];
+// 배열 타입: 타입 뒤에 []를 붙임
+let scores: number[] = [90, 85, 92];  // 숫자만 들어가는 배열
+let names: string[] = ["Alice", "Bob"]; // 문자열만 들어가는 배열
 
-// 함수 매개변수와 반환 타입
+// 함수 매개변수와 반환 타입: (매개변수: 타입): 반환타입
 function multiply(x: number, y: number): number {
-  return x * y;
+  return x * y;  // 숫자 두 개를 받아서 숫자를 반환
 }
 
-// 객체 타입
+// 객체 타입: { 속성명: 타입 } 형태로 정의
 let user: { name: string; age: number } = {
   name: "이영희",
   age: 30
@@ -349,7 +351,7 @@ let numbers = [1, 2, 3];     // number[]로 추론
 let mixed = [1, "hello"];    // (string | number)[]로 추론
 
 // const는 더 좁은 타입으로 추론
-const PI = 3.14;             // 타입: 3.14 (리터럴 타입)
+const PI = 3.14;             // 타입: 3.14 (리터럴 (Literal) 타입 - 정확히 그 값만 허용)
 const greeting = "hello";    // 타입: "hello" (리터럴 타입)</code></pre>
       </section>
 
@@ -475,7 +477,7 @@ console.log(greet(user));</code></pre>
         </table>
 
         <div class="tip" style="margin-top: 20px;">
-          <strong>다음 챕터 예고:</strong> 기본 타입(string, number, boolean, enum, tuple 등)을 깊이 있게 학습합니다.
+          <strong>다음 챕터 예고:</strong> 기본 타입(string, number, boolean, 열거형, 튜플 (Tuple) 등)을 깊이 있게 학습합니다.
         </div>
       </section>
 

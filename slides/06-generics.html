@@ -15,7 +15,7 @@
       <!-- Slide 1: Title -->
       <section class="chapter-title">
         <div class="chapter-number">Chapter 6</div>
-        <h1>제네릭</h1>
+        <h1>제네릭 (Generic)</h1>
         <p class="subtitle">타입을 매개변수로 만드는 마법</p>
         <br>
         <p style="font-size:0.6em; color:#888;">
@@ -28,6 +28,9 @@
       <!-- Slide 2: Why Generics? -->
       <section>
         <h2>왜 제네릭이 필요한가?</h2>
+        <div class="tip" style="margin-bottom: 0.5em;">
+          제네릭은 <strong>내용물을 모르는 상자</strong>와 같습니다. 상자에 "사과"를 넣으면 사과 상자가 되고, "책"을 넣으면 책 상자가 됩니다. 마찬가지로 제네릭은 나중에 어떤 타입이 들어올지 미리 정하지 않고, 사용할 때 결정합니다.
+        </div>
         <p>타입 안전성과 재사용성을 동시에 확보</p>
         <div class="two-columns">
           <div>
@@ -48,24 +51,25 @@ function identityAny(arg: any): any {
 }
 // 타입 안전성이 사라짐!
 const result = identityAny("hello");
-result.toFixed(); // 런타임 에러!
+result.toFixed(); // 런타임 (Runtime, 실행 시점) 에러!
             </code></pre>
           </div>
           <div class="fragment">
             <h3>제네릭으로 해결!</h3>
             <pre><code class="typescript" data-trim data-noescape>
+// &lt;T&gt;는 "타입 매개변수" - 상자에 붙이는 라벨!
 function identity&lt;T&gt;(arg: T): T {
   return arg;
 }
 
-// 타입 추론
+// 타입 추론: TypeScript가 자동으로 T를 알아냄
 const str = identity("hello");
-// str: string
+// str: string (T가 string으로 결정됨)
 
 const num = identity(42);
-// num: number
+// num: number (T가 number로 결정됨)
 
-// 명시적 타입 지정도 가능
+// 명시적으로 타입을 지정할 수도 있음
 const bool = identity&lt;boolean&gt;(true);
 // bool: boolean
 
@@ -113,9 +117,9 @@ const lengths = map(["hello", "world"], s => s.length); // number[]
 
       <!-- Slide 4: Generic Interfaces -->
       <section>
-        <h2>제네릭 인터페이스</h2>
+        <h2>제네릭 인터페이스 (Interface)</h2>
         <pre><code class="typescript" data-trim data-noescape>
-// API 응답을 위한 제네릭 인터페이스
+// API 응답을 위한 제네릭 인터페이스: 데이터 타입만 바뀌는 공통 구조
 interface ApiResponse&lt;T&gt; {
   success: boolean;
   data: T;
@@ -206,30 +210,31 @@ class UserRepository implements Repository&lt;User&gt; {
       <section>
         <h2>제네릭 클래스</h2>
         <pre><code class="typescript" data-trim data-noescape>
+// Stack&lt;T&gt;: T에 어떤 타입이든 넣을 수 있는 스택(쌓기) 자료구조
 class Stack&lt;T&gt; {
-  private items: T[] = [];
+  private items: T[] = [];  // T 타입의 배열로 데이터 저장
 
-  push(item: T): void {
+  push(item: T): void {     // 맨 위에 추가
     this.items.push(item);
   }
 
-  pop(): T | undefined {
+  pop(): T | undefined {    // 맨 위에서 꺼내기
     return this.items.pop();
   }
 
-  peek(): T | undefined {
+  peek(): T | undefined {   // 맨 위 확인 (꺼내지 않음)
     return this.items[this.items.length - 1];
   }
 
-  get size(): number {
+  get size(): number {       // 현재 저장된 개수
     return this.items.length;
   }
 
-  isEmpty(): boolean {
+  isEmpty(): boolean {       // 비어있는지 확인
     return this.items.length === 0;
   }
 
-  toArray(): T[] {
+  toArray(): T[] {           // 배열로 변환
     return [...this.items];
   }
 }
@@ -248,8 +253,8 @@ const top = stringStack.peek(); // string | undefined
 
       <!-- Slide 7: Generic Constraints -->
       <section>
-        <h2>제네릭 제약조건 (Constraints)</h2>
-        <p><code>extends</code>로 타입 매개변수를 제한</p>
+        <h2>제네릭 제약 조건 (Constraint)</h2>
+        <p><code>extends</code> (확장/제한 키워드)로 타입 매개변수를 제한합니다. "이 타입은 최소한 이런 조건을 만족해야 한다"는 뜻입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 // 문제: T가 어떤 타입인지 모르니 .length에 접근 불가
 // function logLength&lt;T&gt;(arg: T): void {
@@ -272,7 +277,8 @@ logLength({ length: 10 }); // OK: length 프로퍼티 있음
 // logLength(123);          // Error: number에 length 없음
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// 객체의 특정 키로 값을 가져오는 함수
+// keyof: 객체 타입의 모든 키(프로퍼티 이름)를 유니온 타입으로 추출
+// K extends keyof T = "K는 T의 키 중 하나여야 한다"
 function getProperty&lt;T, K extends keyof T&gt;(obj: T, key: K): T[K] {
   return obj[key];
 }
@@ -430,10 +436,11 @@ type UpdateUserDTO = Partial&lt;Omit&lt;User, "id" | "password"&gt;&gt;;
 
       <!-- Slide 11: Conditional Types with Generics -->
       <section>
-        <h2>조건부 타입과 제네릭</h2>
-        <p>삼항 연산자처럼 동작하는 타입 레벨 조건문</p>
+        <h2>조건부 타입 (Conditional Type)과 제네릭</h2>
+        <p>삼항 연산자처럼 동작하는 타입 레벨(타입을 다루는 차원의) 조건문</p>
         <pre><code class="typescript" data-trim data-noescape>
 // 기본 형태: T extends U ? X : Y
+// "T가 U에 해당하면 X, 아니면 Y" (if-else와 비슷!)
 type IsString&lt;T&gt; = T extends string ? "yes" : "no";
 
 type A = IsString&lt;string&gt;;    // "yes"
@@ -469,9 +476,9 @@ const posts = await fetchData("posts");     // Post[]
 
       <!-- Slide 12: keyof and typeof with Generics -->
       <section>
-        <h2>keyof와 typeof 활용</h2>
+        <h2><code>keyof</code>와 <code>typeof</code> 활용</h2>
         <pre><code class="typescript" data-trim data-noescape>
-// keyof: 객체 타입의 모든 키를 유니온으로 추출
+// keyof (키 추출 연산자): 객체 타입의 모든 키를 유니온으로 추출
 interface Config {
   host: string;
   port: number;
@@ -481,7 +488,7 @@ interface Config {
 type ConfigKey = keyof Config; // "host" | "port" | "debug"
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// typeof: 값에서 타입을 추출
+// typeof (타입 추출 연산자): 실제 값에서 타입 정보를 추출
 const defaultConfig = {
   host: "localhost",
   port: 3000,
@@ -507,22 +514,24 @@ const port = getConfigValue("port");   // 3000
 
       <!-- Slide 13: Mapped Types -->
       <section>
-        <h2>매핑된 타입 (Mapped Types) 기초</h2>
-        <p>기존 타입을 변환하여 새 타입을 생성</p>
+        <h2>매핑된 타입 (Mapped Type) 기초</h2>
+        <p>기존 타입을 변환하여 새 타입을 생성합니다. "기존 타입의 각 프로퍼티에 대해 이런 변환을 적용하라"는 뜻입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 // Partial의 내부 구현 원리
+// [K in keyof T] = "T의 각 키 K에 대해"
+// ?: 선택적으로 만듦, T[K]: 원래 타입 유지
 type MyPartial&lt;T&gt; = {
   [K in keyof T]?: T[K];
 };
 
 // Readonly의 내부 구현 원리
 type MyReadonly&lt;T&gt; = {
-  readonly [K in keyof T]: T[K];
+  readonly [K in keyof T]: T[K];  // 각 키에 readonly 추가
 };
 
 // Required의 내부 구현 원리
 type MyRequired&lt;T&gt; = {
-  [K in keyof T]-?: T[K];  // -?로 선택적 제거
+  [K in keyof T]-?: T[K];  // -?로 선택적(?) 표시를 제거 = 필수로 만듦
 };
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
@@ -771,10 +780,10 @@ const hellos = createArray(3, "hello");   // string[]
           <h3>핵심 정리</h3>
           <ul>
             <li class="fragment"><strong>제네릭</strong>: 타입을 매개변수화하여 재사용성과 타입 안전성 확보</li>
-            <li class="fragment"><strong>제약조건</strong>: <code>T extends U</code>로 허용 범위 제한</li>
+            <li class="fragment"><strong>제약 조건</strong>: <code>T extends U</code>로 허용 범위 제한</li>
             <li class="fragment"><strong>제네릭 인터페이스/클래스</strong>: 다양한 타입에 대응하는 구조 설계</li>
             <li class="fragment"><strong>유틸리티 타입</strong>: Partial, Pick, Omit, Record 등 내장 제네릭</li>
-            <li class="fragment"><strong>조건부 타입</strong>: 타입 레벨의 if-else 분기</li>
+            <li class="fragment"><strong>조건부 타입</strong>: 타입 레벨(타입을 다루는 차원)의 if-else 분기</li>
             <li class="fragment"><strong>매핑된 타입</strong>: 기존 타입 변환으로 새 타입 생성</li>
             <li class="fragment"><strong>keyof / typeof</strong>: 타입 정보 추출의 핵심 도구</li>
           </ul>

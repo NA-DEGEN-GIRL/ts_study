@@ -15,13 +15,13 @@
       <!-- Slide 1: Title -->
       <section class="chapter-title">
         <div class="chapter-number">Chapter 5</div>
-        <h1>클래스</h1>
+        <h1>클래스 (Class)</h1>
         <p class="subtitle">TypeScript의 객체지향 프로그래밍</p>
         <br>
         <p style="font-size:0.6em; color:#888;">
           <span class="badge badge-blue">OOP</span>
-          <span class="badge badge-green">캡슐화</span>
-          <span class="badge badge-orange">상속</span>
+          <span class="badge badge-green">캡슐화 (Encapsulation)</span>
+          <span class="badge badge-orange">상속 (Inheritance)</span>
           <span class="badge badge-red">추상화</span>
         </p>
       </section>
@@ -29,7 +29,10 @@
       <!-- Slide 2: Class Basics -->
       <section>
         <h2>클래스 기본 구조</h2>
-        <p>프로퍼티, 생성자, 메서드로 구성됩니다</p>
+        <p>프로퍼티, 생성자 (Constructor), 메서드로 구성됩니다</p>
+        <div class="tip" style="margin-bottom: 0.5em;">
+          <strong>왜 클래스가 필요한가?</strong> 관련된 데이터(프로퍼티)와 동작(메서드)을 하나로 묶어서 관리하면, 코드를 더 체계적으로 정리할 수 있습니다. 붕어빵 틀(클래스)로 붕어빵(인스턴스 (Instance, 클래스로 만든 실제 객체))을 찍어내는 것과 같습니다.
+        </div>
         <pre><code class="typescript" data-trim data-noescape>
 class User {
   // 프로퍼티 선언 (타입 필수!)
@@ -37,19 +40,20 @@ class User {
   email: string;
   age: number;
 
-  // 생성자
+  // 생성자: 클래스로 객체를 만들 때 자동으로 호출되는 함수
   constructor(name: string, email: string, age: number) {
     this.name = name;
     this.email = email;
     this.age = age;
   }
 
-  // 메서드
+  // 메서드: 클래스 안에 정의된 함수
   greet(): string {
     return `안녕하세요, ${this.name}입니다!`;
   }
 }
 
+// new 키워드로 인스턴스(실제 객체) 생성
 const user = new User("홍길동", "hong@example.com", 30);
 console.log(user.greet()); // "안녕하세요, 홍길동입니다!"
         </code></pre>
@@ -60,11 +64,11 @@ console.log(user.greet()); // "안녕하세요, 홍길동입니다!"
 
       <!-- Slide 3: Access Modifiers -->
       <section>
-        <h2>접근 제한자 (Access Modifiers)</h2>
+        <h2>접근 제어자 (Access Modifier)</h2>
         <table class="compare-table">
           <thead>
             <tr>
-              <th>제한자</th>
+              <th>제어자</th>
               <th>클래스 내부</th>
               <th>자식 클래스</th>
               <th>외부</th>
@@ -108,12 +112,12 @@ class BankAccount {
 
       <!-- Slide 4: Access Modifiers in Action -->
       <section>
-        <h2>접근 제한자 실전 예제</h2>
+        <h2>접근 제어자 실전 예제</h2>
         <pre><code class="typescript" data-trim data-noescape>
 class BankAccount {
-  public owner: string;
-  protected balance: number;
-  private pin: string;
+  public owner: string;         // 공개: 어디서든 접근 가능
+  protected balance: number;    // 보호: 이 클래스와 자식 클래스에서만
+  private pin: string;          // 비공개: 이 클래스 내부에서만
 
   constructor(owner: string, balance: number, pin: string) {
     this.owner = owner;
@@ -121,36 +125,39 @@ class BankAccount {
     this.pin = pin;
   }
 
+  // private 메서드: 클래스 내부에서만 호출 가능
   private verifyPin(inputPin: string): boolean {
     return this.pin === inputPin;
   }
 
+  // public 메서드: 외부에서 호출 가능
   public withdraw(amount: number, inputPin: string): boolean {
-    if (!this.verifyPin(inputPin)) return false;
+    if (!this.verifyPin(inputPin)) return false;  // 내부에서 private 호출
     if (this.balance < amount) return false;
     this.balance -= amount;
     return true;
   }
 }
 
+// 상속: 부모 클래스의 기능을 물려받음
 class SavingsAccount extends BankAccount {
   getBalance(): number {
-    return this.balance;    // OK: protected 접근 가능
-    // return this.pin;     // Error: private 접근 불가!
+    return this.balance;    // OK: protected는 자식에서 접근 가능
+    // return this.pin;     // Error: private은 자식에서도 접근 불가!
   }
 }
 
 const account = new BankAccount("홍길동", 10000, "1234");
-account.owner;              // OK: public
-// account.balance;         // Error: protected
-// account.pin;             // Error: private
+account.owner;              // OK: public이므로 외부에서 접근 가능
+// account.balance;         // Error: protected - 외부 접근 불가
+// account.pin;             // Error: private - 외부 접근 불가
         </code></pre>
       </section>
 
       <!-- Slide 5: readonly -->
       <section>
-        <h2>readonly 프로퍼티</h2>
-        <p>생성 시에만 값을 할당하고, 이후 변경 불가</p>
+        <h2><code>readonly</code> 프로퍼티</h2>
+        <p>생성 시에만 값을 할당하고, 이후 변경 불가 (읽기 전용)</p>
         <pre><code class="typescript" data-trim data-noescape>
 class Config {
   readonly apiUrl: string;
@@ -227,7 +234,7 @@ class User {
 
       <!-- Slide 7: Getters and Setters -->
       <section>
-        <h2>Getter / Setter</h2>
+        <h2>게터/세터 (Getter/Setter)</h2>
         <p>프로퍼티 접근을 제어하고 유효성 검증 로직을 추가</p>
         <pre><code class="typescript" data-trim data-noescape>
 class Temperature {
@@ -267,7 +274,7 @@ temp.celsius = 0;              // setter 호출
 
       <!-- Slide 8: Static Members -->
       <section>
-        <h2>정적 멤버 (Static Members)</h2>
+        <h2>정적 멤버 (Static Member)</h2>
         <p>인스턴스가 아닌 <strong>클래스 자체</strong>에 속하는 멤버</p>
         <pre><code class="typescript" data-trim data-noescape>
 class MathUtils {
@@ -282,18 +289,20 @@ class MathUtils {
   }
 }
 
-// 인스턴스 생성 없이 직접 호출
+// new 없이 클래스 이름으로 직접 호출!
 console.log(MathUtils.PI);              // 3.14159265
 console.log(MathUtils.circleArea(5));   // 78.539...
 console.log(MathUtils.clamp(15, 0, 10)); // 10
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// 실전: 싱글톤 패턴
+// 실전: 싱글톤 패턴 (프로그램 전체에서 딱 하나만 존재하는 객체)
 class Database {
-  private static instance: Database;
+  private static instance: Database;  // 유일한 인스턴스 저장
 
+  // private 생성자: 외부에서 new로 생성 못하게 막음
   private constructor(private connectionString: string) {}
 
+  // 유일한 인스턴스를 반환하는 정적 메서드
   static getInstance(): Database {
     if (!Database.instance) {
       Database.instance = new Database("mongodb://localhost:27017");
@@ -304,14 +313,14 @@ class Database {
 
 const db1 = Database.getInstance();
 const db2 = Database.getInstance();
-console.log(db1 === db2); // true (같은 인스턴스)
+console.log(db1 === db2); // true (항상 같은 인스턴스!)
         </code></pre>
       </section>
 
       <!-- Slide 9: Abstract Classes -->
       <section>
-        <h2>추상 클래스 (Abstract Classes)</h2>
-        <p>직접 인스턴스화할 수 없고, 반드시 상속해서 구현해야 하는 클래스</p>
+        <h2>추상 클래스 (Abstract Class)</h2>
+        <p>직접 인스턴스화할 수 없고, 반드시 상속해서 구현 (Implements)해야 하는 클래스</p>
         <pre><code class="typescript" data-trim data-noescape>
 abstract class Shape {
   constructor(public color: string) {}
@@ -359,7 +368,7 @@ console.log(circle.describe()); // "파랑 도형 (면적: 78.54)"
 
       <!-- Slide 10: Abstract vs Interface -->
       <section>
-        <h2>추상 클래스 vs 인터페이스</h2>
+        <h2>추상 클래스 vs 인터페이스 (Interface)</h2>
         <table class="compare-table">
           <thead>
             <tr>
@@ -390,8 +399,8 @@ console.log(circle.describe()); // "파랑 도형 (면적: 78.54)"
               <td>public만</td>
             </tr>
             <tr class="fragment">
-              <td>런타임 존재</td>
-              <td>JavaScript로 컴파일됨</td>
+              <td>런타임 (Runtime, 실행 시점) 존재</td>
+              <td>JavaScript로 컴파일 (Compile, 코드 변환)됨</td>
               <td>컴파일 시 제거됨</td>
             </tr>
             <tr class="fragment">
@@ -409,8 +418,8 @@ console.log(circle.describe()); // "파랑 도형 (면적: 78.54)"
 
       <!-- Slide 11: Implementing Interfaces -->
       <section>
-        <h2>인터페이스 구현 (implements)</h2>
-        <p>클래스가 특정 인터페이스의 계약을 이행하도록 강제</p>
+        <h2>인터페이스 구현 (<code>implements</code>)</h2>
+        <p>클래스가 특정 인터페이스의 계약을 이행하도록 강제합니다. "이 클래스는 반드시 이 기능들을 가지고 있어야 한다"는 약속입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 interface Serializable {
   serialize(): string;
@@ -541,8 +550,8 @@ const query = new AdvancedQueryBuilder()
 
       <!-- Slide 14: Mixins Pattern -->
       <section>
-        <h2>믹스인 패턴 (Mixins)</h2>
-        <p>다중 상속의 대안 - 여러 클래스의 기능을 조합</p>
+        <h2>믹스인 (Mixin) 패턴</h2>
+        <p>다중 상속 (Multiple Inheritance)의 대안 - 여러 클래스의 기능을 조합</p>
         <pre><code class="typescript" data-trim data-noescape>
 // 믹스인을 위한 생성자 타입
 type Constructor&lt;T = {}&gt; = new (...args: any[]) => T;
@@ -640,8 +649,8 @@ cart.addItem("TypeScript 책", 35000);
           <h3>핵심 정리</h3>
           <ul>
             <li class="fragment"><strong>클래스 기본</strong>: 프로퍼티 선언 필수, 생성자에서 초기화</li>
-            <li class="fragment"><strong>접근 제한자</strong>: <code>public</code> / <code>protected</code> / <code>private</code>로 캡슐화</li>
-            <li class="fragment"><strong>매개변수 프로퍼티</strong>: 생성자 매개변수에 제한자 = 자동 선언 + 할당</li>
+            <li class="fragment"><strong>접근 제어자</strong>: <code>public</code> / <code>protected</code> / <code>private</code>로 캡슐화</li>
+            <li class="fragment"><strong>매개변수 프로퍼티</strong>: 생성자 매개변수에 제어자 = 자동 선언 + 할당</li>
             <li class="fragment"><strong>Getter/Setter</strong>: 프로퍼티 접근 제어 및 유효성 검증</li>
             <li class="fragment"><strong>static</strong>: 인스턴스 없이 클래스 레벨에서 접근</li>
             <li class="fragment"><strong>abstract</strong>: 구현을 강제하는 틀 제공 (인스턴스화 불가)</li>

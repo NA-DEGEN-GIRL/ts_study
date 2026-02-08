@@ -2,8 +2,12 @@
  * Chapter 01 - Introduction to TypeScript
  * 02-type-annotations.ts - 타입 표기와 타입 추론
  *
- * 명시적 타입 표기(Type Annotations)와 타입 추론(Type Inference)의 차이를 배웁니다.
- * 언제 타입을 명시하고, 언제 추론에 의존해야 하는지 알아봅니다.
+ * 이 파일에서 배울 내용:
+ * - 타입 표기 (Type Annotation) - 변수에 명시적으로 타입 지정
+ * - 타입 추론 (Type Inference) - 값을 보고 TypeScript가 자동으로 타입 결정
+ * - 화살표 함수 (Arrow Function)의 타입 지정
+ * - 유니온 타입 (Union Type) - 여러 타입 중 하나 (string | number)
+ * 왜 필요한가? 타입 표기와 추론을 적절히 사용하여 코드 간결성과 안전성 균형
  */
 
 console.log("=== 타입 표기 vs 타입 추론 ===\n");

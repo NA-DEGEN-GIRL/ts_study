@@ -2,8 +2,12 @@
  * Chapter 02 - Basic Types
  * 04-any-unknown.ts - any vs unknown
  *
- * any와 unknown 타입의 차이점과 사용법을 배웁니다.
- * unknown은 타입 안전한 any의 대안입니다.
+ * 이 파일에서 배울 내용:
+ * - any 타입 - 모든 타입을 허용하지만 타입 체크 비활성화 (위험)
+ * - unknown 타입 - 타입 안전한 any의 대안 (권장)
+ * - 타입 가드 (Type Guard) - unknown 값을 안전하게 사용하는 방법
+ * - 타입 단언 (Type Assertion) vs 타입 가드의 차이
+ * 왜 필요한가? 외부 데이터를 안전하게 처리하기 위해
  */
 
 console.log("=== any vs unknown ===\n");
@@ -52,10 +56,11 @@ try {
 }
 
 // ============================================
-// 3. unknown 타입 - 타입 안전한 any
+// 3. unknown 타입 - 타입 안전한 any의 대안
 // ============================================
 
 console.log("\n--- 3. unknown 타입 ---\n");
+// 왜 필요한가? any보다 안전하게 타입을 모르는 값 처리
 
 let unknownValue: unknown = "문자열";
 console.log(`unknown 변수 (초기값): ${unknownValue}`);

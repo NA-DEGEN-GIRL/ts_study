@@ -2,8 +2,11 @@
  * Chapter 01 - Introduction to TypeScript
  * 01-hello.ts - 첫 번째 TypeScript 프로그램
  *
- * TypeScript의 기본 문법과 타입 시스템을 소개합니다.
- * 변수 선언, 타입 안정성, 그리고 기본적인 출력을 다룹니다.
+ * 이 파일에서 배울 내용:
+ * - TypeScript의 기본 문법과 타입 (Type) 시스템
+ * - 변수 선언 시 타입 지정 방법
+ * - 타입 안정성 (Type Safety)이 주는 이점
+ * - 함수의 매개변수와 반환 타입 (Return Type) 지정
  */
 
 // ============================================
@@ -21,10 +24,11 @@ console.log(`버전: ${version}`);
 console.log(`Strict 모드: ${isStrict}\n`);
 
 // ============================================
-// 2. 타입 안정성 (Type Safety)
+// 2. 타입 안정성 (Type Safety) - 잘못된 타입 할당을 컴파일 단계에서 방지
 // ============================================
 
-// TypeScript는 컴파일 타임에 타입 오류를 잡아냅니다
+// TypeScript는 컴파일 타임 (Compile Time)에 타입 오류를 잡아냅니다
+// 왜 필요한가? 런타임 에러를 미리 방지하여 더 안전한 코드 작성 가능
 let username: string = "김철수";
 // username = 123; // ❌ Error: Type 'number' is not assignable to type 'string'
 
@@ -49,10 +53,11 @@ console.log(`5 + 3 = ${add(5, 3)}`);
 console.log(greet("박영희"));
 
 // ============================================
-// 4. 타입 추론 (Type Inference)
+// 4. 타입 추론 (Type Inference) - 값을 보고 자동으로 타입을 결정
 // ============================================
 
 // TypeScript는 값으로부터 타입을 자동으로 추론합니다
+// 왜 필요한가? 타입을 일일이 작성하지 않아도 타입 안정성 확보
 let inferredString = "타입이 자동으로 추론됩니다"; // string으로 추론
 let inferredNumber = 42; // number로 추론
 let inferredBoolean = true; // boolean으로 추론

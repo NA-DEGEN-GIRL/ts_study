@@ -2,15 +2,16 @@
  * 챕터 11: 비동기 프로그래밍
  *
  * 이 챕터에서는 TypeScript에서 비동기 코드를 타입 안전하게 작성하는 방법을 학습합니다:
- * - Promise 타이핑
+ * - 프로미스 (Promise) 타이핑
  * - async/await
  * - 에러 처리
- * - Promise 조합
+ * - 프로미스 조합
  */
 
-// 연습 1: Promise 타이핑
+// 연습 1: 프로미스 (Promise) 타이핑
 // TODO: 사용자 데이터를 가져오는 함수를 작성하세요
 // Promise의 제네릭 타입을 명시해야 합니다
+// 예: function fetchUser(id: number): Promise<User>
 interface User {
   id: number;
   name: string;
@@ -32,8 +33,10 @@ function fetchUser(id: number) {
 
 // 연습 2: async/await 사용
 // TODO: async 함수로 여러 비동기 작업을 순차적으로 실행하세요
+// async 함수는 자동으로 Promise를 반환합니다
 async function getUserProfile(userId: number) {
   // TODO: fetchUser를 호출하고 결과를 User 타입으로 받으세요
+  // await 키워드로 Promise의 결과를 기다립니다
   // 그리고 사용자 이름을 포함한 프로필 문자열을 반환하세요
   return "";
 }
@@ -58,21 +61,24 @@ async function fetchData(url: string): Promise<ApiResponse<any>> {
     return { success: true, data: { message: "성공" } };
   } catch (error) {
     // TODO: error를 적절히 처리하세요
+    // error는 unknown 타입이므로 타입 가드 (Type Guard)를 사용하세요
     return { success: false, error: "" };
   }
 }
 
 // 연습 4: Promise.all로 병렬 실행
 // TODO: 여러 사용자를 동시에 가져오는 함수를 작성하세요
+// Promise.all은 Promise 배열을 받아서 모든 결과의 배열을 반환합니다
 async function fetchMultipleUsers(ids: number[]) {
   // TODO: Promise.all을 사용하여 모든 사용자를 동시에 가져오세요
   // 반환 타입은 Promise<User[]>이어야 합니다
 }
 
-// 연습 5: 커스텀 타입 가드로 에러 처리
+// 연습 5: 커스텀 타입 가드 (Type Guard)로 에러 처리
 // TODO: unknown 타입의 에러를 안전하게 처리하는 헬퍼 함수
 function isError(error: unknown): error is Error {
   // TODO: error가 Error 인스턴스인지 확인하는 타입 가드
+  // instanceof를 사용하세요
   return false;
 }
 
@@ -97,11 +103,13 @@ async function safeApiCall(url: string): Promise<string> {
 
 // 연습 6: Retry 로직 (고급)
 // TODO: 실패 시 재시도하는 함수를 작성하세요
+// 제네릭 (Generic)과 async/await를 사용하여 재시도 로직을 구현합니다
 async function retry<T>(
   fn: () => Promise<T>,
   maxAttempts: number = 3
 ): Promise<T> {
   // TODO: 최대 maxAttempts번까지 재시도하는 로직을 구현하세요
+  // try-catch로 에러를 잡고, 성공하면 결과를 반환하세요
   // 모든 시도가 실패하면 마지막 에러를 던지세요
   let lastError: any;
 

@@ -2,8 +2,12 @@
  * Chapter 01 - Introduction to TypeScript
  * 03-compiler-options.ts - 컴파일러 옵션과 Strict 모드
  *
- * TypeScript 컴파일러 옵션, 특히 strict 모드가 무엇을 체크하는지 배웁니다.
- * tsconfig.json의 "strict: true"가 활성화하는 여러 옵션들을 실습합니다.
+ * 이 파일에서 배울 내용:
+ * - 컴파일러 (Compiler) 옵션 - TypeScript를 JavaScript로 변환 시 설정
+ * - Strict 모드 - 엄격한 타입 체크를 활성화하는 옵션
+ * - noImplicitAny - 암묵적 (Implicit) any 타입 금지
+ * - strictNullChecks - null과 undefined를 엄격하게 체크
+ * 왜 필요한가? strict 모드로 런타임 에러를 컴파일 시점에 미리 발견
  */
 
 console.log("=== TypeScript Strict 모드 데모 ===\n");

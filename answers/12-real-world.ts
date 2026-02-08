@@ -9,7 +9,8 @@
  */
 
 // 연습 1: Result 타입 (Rust-style 에러 처리)
-// 해설: Discriminated Union으로 성공/실패를 명시적으로 처리합니다
+// 풀이: 판별 유니온 (Discriminated Union)으로 성공/실패를 명시적으로 처리합니다
+// try-catch 대신 Result 타입을 사용하면 에러 처리를 강제할 수 있습니다
 type Result<T, E = Error> =
   | { ok: true; value: T }
   | { ok: false; error: E };
@@ -22,7 +23,8 @@ function Err<E>(error: E): Result<never, E> {
   return { ok: false, error };
 }
 
-// 해설: Result 타입을 사용하면 에러 처리를 명시적으로 할 수 있습니다
+// 풀이: Result 타입을 사용하면 에러 처리를 명시적으로 할 수 있습니다
+// 함수 호출자는 반드시 ok 속성을 확인하여 성공/실패를 처리해야 합니다
 function divide(a: number, b: number): Result<number, string> {
   if (b === 0) {
     return Err("0으로 나눌 수 없습니다");
@@ -31,7 +33,8 @@ function divide(a: number, b: number): Result<number, string> {
 }
 
 // 연습 2: 타입 안전한 Event Emitter
-// 해설: 제네릭으로 이벤트 맵을 받아서 타입 안전한 이벤트 시스템을 구현합니다
+// 풀이: 제네릭 (Generic)으로 이벤트 맵을 받아서 타입 안전한 이벤트 시스템을 구현합니다
+// 각 이벤트 이름과 페이로드 타입을 매핑하여, 잘못된 이벤트나 페이로드를 사용하면 컴파일 에러가 발생합니다
 interface Events {
   userLogin: { userId: string; timestamp: Date };
   userLogout: { userId: string };
@@ -100,7 +103,8 @@ class ApiClient {
 }
 
 // 연습 4: Builder 패턴
-// 해설: Fluent API로 객체를 단계적으로 구성합니다
+// 풀이: Fluent API로 객체를 단계적으로 구성합니다
+// 메서드 체이닝으로 가독성 좋게 복잡한 객체를 생성할 수 있습니다
 interface HttpRequest {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -144,7 +148,8 @@ class HttpRequestBuilder {
 }
 
 // 연습 5: Branded Types (명목적 타이핑)
-// 해설: 구조적으로는 같지만 의미적으로 다른 타입을 구분합니다
+// 풀이: 구조적으로는 같지만 의미적으로 다른 타입을 구분합니다
+// UserId와 ProductId는 모두 string이지만, 서로 호환되지 않아 실수를 방지합니다
 type Brand<K, T> = K & { __brand: T };
 
 type UserId = Brand<string, "UserId">;

@@ -2,8 +2,13 @@
  * Chapter 05 - Classes
  * 01-class-basics.ts - 클래스 기초
  *
- * TypeScript 클래스의 기본 문법을 학습합니다.
- * 속성, 생성자, 메서드, this 키워드를 다룹니다.
+ * 이 파일에서 배울 내용:
+ * - 클래스 (Class) - 객체를 생성하는 설계도
+ * - 생성자 (Constructor) - 인스턴스 초기화 함수
+ * - 메서드 (Method) - 클래스 내부의 함수
+ * - Getter와 Setter - 속성 접근/변경 시 로직 추가
+ * - 정적 멤버 (Static Member) - 인스턴스 없이 사용 가능한 속성/메서드
+ * - this 타입 - 메서드 체이닝 (Method Chaining)에 유용
  */
 
 console.log("=== TypeScript 클래스 기초 ===\n");
@@ -62,16 +67,17 @@ class Calculator {
 }
 
 const calc = new Calculator();
-console.log(`5 + 3 = ${calc.add(5, 3)}`);
-console.log(`10 - 4 = ${calc.subtract(10, 4)}`);
-console.log(`6 × 7 = ${calc.multiply(6, 7)}`);
-console.log(`100 ÷ 4 = ${calc.divide(100, 4)}`);
+console.log(`계산 결과: 5 + 3 = ${calc.add(5, 3)}`);
+console.log(`계산 결과: 10 - 4 = ${calc.subtract(10, 4)}`);
+console.log(`계산 결과: 6 × 7 = ${calc.multiply(6, 7)}`);
+console.log(`계산 결과: 100 ÷ 4 = ${calc.divide(100, 4)}`);
 
 // ============================================
-// 3. Getter와 Setter
+// 3. Getter와 Setter - 속성 접근 시 로직 추가
 // ============================================
 
 console.log("\n--- 3. Getter와 Setter ---\n");
+// 왜 필요한가? 속성 변경 시 유효성 검사나 계산 로직 추가 가능
 
 class Rectangle {
   private _width: number;
@@ -123,10 +129,11 @@ console.log(`\n너비 변경 후: ${rect.width} × ${rect.height}`);
 console.log(`넓이: ${rect.area}`);
 
 // ============================================
-// 4. 정적 멤버 (Static Members)
+// 4. 정적 멤버 (Static Member) - 클래스 자체에 속한 속성/메서드
 // ============================================
 
 console.log("\n--- 4. 정적 멤버 ---\n");
+// 왜 필요한가? 인스턴스 생성 없이 유틸리티 함수나 상수 제공
 
 class MathUtils {
   static readonly PI = 3.14159;
@@ -172,10 +179,11 @@ const cat = new Animal("고양이");
 cat.makeSound();
 
 // ============================================
-// 6. this 타입
+// 6. this 타입 - 현재 인스턴스를 반환하는 타입
 // ============================================
 
 console.log("\n--- 6. this 타입 ---\n");
+// 왜 필요한가? 메서드 체이닝 (Method Chaining) 패턴 구현에 유용
 
 class Counter {
   private count = 0;

@@ -2,8 +2,13 @@
  * Chapter 02 - Basic Types
  * 05-special-types.ts - 특수 타입들
  *
- * void, null, undefined, never 타입의 의미와 실용적인 사용법을 배웁니다.
- * 각 타입이 어떤 상황에서 사용되는지 이해합니다.
+ * 이 파일에서 배울 내용:
+ * - void 타입 - 반환값이 없는 함수
+ * - undefined 타입 - 값이 할당되지 않은 상태
+ * - null 타입 - 의도적으로 비어있음을 나타냄
+ * - never 타입 - 절대 발생하지 않는 값 (예외 발생, 무한 루프)
+ * - 옵셔널 체이닝 (Optional Chaining) ?. - 안전한 속성 접근
+ * - null 병합 연산자 (Nullish Coalescing) ?? - 기본값 지정
  */
 
 console.log("=== 특수 타입들 (void, null, undefined, never) ===\n");
@@ -122,10 +127,11 @@ console.log(`\nnotInitialized: ${notInitialized}`);
 console.log(`intentionallyEmpty: ${intentionallyEmpty}`);
 
 // ============================================
-// 5. never 타입 - 절대 발생하지 않는 값
+// 5. never 타입 - 절대 발생하지 않는 값의 타입
 // ============================================
 
 console.log("\n--- 5. never 타입 ---\n");
+// 왜 필요한가? 함수가 정상 종료되지 않음을 명시적으로 표현
 
 // never: 함수가 절대 정상적으로 종료되지 않음
 function throwError(message: string): never {
@@ -145,10 +151,11 @@ console.log("  - 무한 루프");
 console.log("  - 도달할 수 없는 코드");
 
 // ============================================
-// 6. never를 이용한 완전성 체크
+// 6. never를 이용한 완전성 체크 (Exhaustive Check)
 // ============================================
 
 console.log("\n--- 6. never를 이용한 완전성 체크 ---\n");
+// 왜 필요한가? 모든 경우를 처리했는지 컴파일 시점에 확인
 
 type Status = "pending" | "success" | "error";
 

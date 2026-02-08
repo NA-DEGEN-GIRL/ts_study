@@ -19,19 +19,25 @@
         <p class="subtitle">타입 시스템의 깊은 세계로</p>
         <br>
         <p style="font-size:0.6em; color:#888;">
-          <span class="badge badge-blue">Conditional Types</span>
-          <span class="badge badge-green">Mapped Types</span>
-          <span class="badge badge-orange">Template Literals</span>
-          <span class="badge badge-red">Type-Level Programming</span>
+          <span class="badge badge-blue">조건부 타입 (Conditional Type)</span>
+          <span class="badge badge-green">매핑된 타입 (Mapped Type)</span>
+          <span class="badge badge-orange">템플릿 리터럴 타입 (Template Literal Type)</span>
+          <span class="badge badge-red">타입 레벨 프로그래밍</span>
         </p>
+        <div class="tip" style="font-size:0.55em; margin-top: 1em;">
+          이 장은 고급 내용입니다. 처음에 완벽히 이해하지 못해도 괜찮습니다. 필요할 때 다시 돌아와서 참고하세요.
+        </div>
       </section>
 
       <!-- Slide 2: Conditional Types -->
       <section>
-        <h2>조건부 타입 (Conditional Types)</h2>
-        <p>타입 레벨의 삼항 연산자: <code>T extends U ? X : Y</code></p>
+        <h2>조건부 타입 (Conditional Type)</h2>
+        <p>타입 레벨(타입을 다루는 차원)의 삼항 연산자: <code>T extends U ? X : Y</code></p>
+        <div class="tip" style="margin-bottom: 0.3em; font-size: 0.7em;">
+          <strong>왜 이게 필요한가?</strong> 입력 타입에 따라 출력 타입을 자동으로 바꾸고 싶을 때 사용합니다. 예: "문자열을 넣으면 문자열을 반환하고, 숫자를 넣으면 숫자를 반환하는 함수"를 타입으로 표현할 수 있습니다.
+        </div>
         <pre><code class="typescript" data-trim data-noescape>
-// 기본 문법
+// 기본 문법: "T가 string에 해당하면 true, 아니면 false"
 type IsString&lt;T&gt; = T extends string ? true : false;
 
 type A = IsString&lt;string&gt;;    // true
@@ -54,6 +60,7 @@ type T3 = TypeName&lt;string[]&gt;;     // "object"
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
 // 실전: 배열이면 요소 타입 추출, 아니면 그대로
+// infer U = "U라는 타입을 여기서 추출(추론)해라"
 type Flatten&lt;T&gt; = T extends Array&lt;infer U&gt; ? U : T;
 
 type Str = Flatten&lt;string[]&gt;;     // string
@@ -63,10 +70,11 @@ type Num = Flatten&lt;number&gt;;       // number (배열이 아니므로 그대
 
       <!-- Slide 3: infer Keyword -->
       <section>
-        <h2>infer 키워드</h2>
-        <p>조건부 타입 안에서 타입을 <strong>추출(추론)</strong>하는 마법의 키워드</p>
+        <h2><code>infer</code> 키워드 (타입 추론/추출)</h2>
+        <p>조건부 타입 안에서 타입을 <strong>추출(추론)</strong>하는 키워드. <code>infer R</code>은 "여기에 해당하는 타입을 R이라고 부르겠다"는 뜻입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
-// 함수의 반환 타입 추출 (ReturnType 원리)
+// 함수의 반환 타입 추출 (ReturnType의 내부 구현 원리)
+// "T가 함수라면, 그 반환 타입을 R로 추출해라"
 type MyReturnType&lt;T&gt; = T extends (...args: any[]) => infer R ? R : never;
 
 type R1 = MyReturnType&lt;() => string&gt;;          // string
@@ -74,7 +82,8 @@ type R2 = MyReturnType&lt;(x: number) => boolean&gt;; // boolean
 type R3 = MyReturnType&lt;string&gt;;                 // never
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// 함수의 매개변수 타입 추출 (Parameters 원리)
+// 함수의 매개변수 타입 추출 (Parameters의 내부 구현 원리)
+// "T가 함수라면, 그 매개변수 타입들을 P로 추출해라"
 type MyParameters&lt;T&gt; = T extends (...args: infer P) => any ? P : never;
 
 type P1 = MyParameters&lt;(a: string, b: number) => void&gt;;
@@ -88,7 +97,7 @@ type V1 = UnwrapPromise&lt;Promise&lt;string&gt;&gt;;   // string
 type V2 = UnwrapPromise&lt;Promise&lt;number[]&gt;&gt;; // number[]
 type V3 = UnwrapPromise&lt;string&gt;;             // string (Promise가 아님)
 
-// 중첩 Promise도 재귀적으로 풀기
+// 중첩 Promise도 재귀적으로 풀기 (자기 자신을 다시 호출)
 type DeepUnwrap&lt;T&gt; = T extends Promise&lt;infer U&gt; ? DeepUnwrap&lt;U&gt; : T;
 
 type V4 = DeepUnwrap&lt;Promise&lt;Promise&lt;Promise&lt;number&gt;&gt;&gt;&gt;; // number
@@ -97,9 +106,10 @@ type V4 = DeepUnwrap&lt;Promise&lt;Promise&lt;Promise&lt;number&gt;&gt;&gt;&gt;;
 
       <!-- Slide 4: More infer Patterns -->
       <section>
-        <h2>infer 활용 패턴</h2>
+        <h2><code>infer</code> 활용 패턴</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // 배열의 첫 번째 요소 타입 추출
+// [infer F, ...any[]] = "첫 번째를 F로, 나머지는 아무거나"
 type First&lt;T extends any[]&gt; = T extends [infer F, ...any[]] ? F : never;
 
 type F1 = First&lt;[string, number, boolean]&gt;;  // string
@@ -122,7 +132,7 @@ class UserModel {
 
 type UserInstance = InstanceOf&lt;typeof UserModel&gt;; // UserModel
 
-// 문자열에서 패턴 매칭
+// 문자열에서 패턴 매칭: URL 경로의 :파라미터 이름 추출
 type ExtractRouteParams&lt;T extends string&gt; =
   T extends `${string}:${infer Param}/${infer Rest}`
     ? Param | ExtractRouteParams&lt;Rest&gt;
@@ -138,7 +148,7 @@ type Params = ExtractRouteParams&lt;"/users/:userId/posts/:postId"&gt;;
       <!-- Slide 5: Distributive Conditional Types -->
       <section>
         <h2>분배 조건부 타입 (Distributive)</h2>
-        <p>유니온 타입이 조건부 타입에 들어가면 <strong>각 멤버에 분배</strong>되어 적용</p>
+        <p>유니온 타입이 조건부 타입에 들어가면 <strong>각 멤버에 하나씩 분배</strong>되어 적용됩니다. 마치 "한 명씩 줄 서서 처리"하는 것과 같습니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 type ToArray&lt;T&gt; = T extends any ? T[] : never;
 
@@ -150,6 +160,7 @@ type Result = ToArray&lt;string | number&gt;;
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
 // Exclude 구현 원리 (분배 활용)
+// "T의 각 멤버를 하나씩 확인해서, U에 해당하면 제거(never)"
 type MyExclude&lt;T, U&gt; = T extends U ? never : T;
 
 type Ex1 = MyExclude&lt;"a" | "b" | "c", "a"&gt;;
@@ -174,10 +185,11 @@ type Ex2 = MyExtract&lt;string | number | boolean, string | boolean&gt;;
 
       <!-- Slide 6: Mapped Types -->
       <section>
-        <h2>매핑된 타입 (Mapped Types)</h2>
+        <h2>매핑된 타입 (Mapped Type)</h2>
         <p>기존 타입의 각 프로퍼티를 변환하여 새 타입을 생성</p>
         <pre><code class="typescript" data-trim data-noescape>
 // 기본 문법: { [K in keyof T]: 새로운_타입 }
+// "T의 각 키(K)에 대해 새로운 타입으로 변환하라"
 interface User {
   id: number;
   name: string;
@@ -186,6 +198,7 @@ interface User {
 }
 
 // 모든 프로퍼티를 getter 함수로 변환
+// as 절로 키 이름을 "getName", "getEmail" 등으로 변환
 type Getters&lt;T&gt; = {
   [K in keyof T as `get${Capitalize&lt;string & K&gt;}`]: () => T[K];
 };
@@ -219,6 +232,7 @@ type MutableUser = Mutable&lt;ReadonlyUser&gt;;
         <h2>매핑된 타입 심화</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // 특정 타입의 프로퍼티만 선택
+// "값이 ValueType에 해당하는 키만 남기고, 나머지는 never로 제거"
 type PickByType&lt;T, ValueType&gt; = {
   [K in keyof T as T[K] extends ValueType ? K : never]: T[K];
 };
@@ -261,8 +275,8 @@ type FormEvents = EventMap&lt;FormState&gt;;
 
       <!-- Slide 8: Template Literal Types -->
       <section>
-        <h2>템플릿 리터럴 타입</h2>
-        <p>문자열 리터럴 타입을 조합하여 새로운 문자열 타입 생성</p>
+        <h2>템플릿 리터럴 타입 (Template Literal Type)</h2>
+        <p>문자열 리터럴 타입을 조합하여 새로운 문자열 타입 생성. JavaScript의 템플릿 리터럴(<code>`Hello ${name}`</code>)을 타입 세계에 가져온 것입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 // 기본 사용
 type Greeting = `Hello, ${string}!`;
@@ -315,7 +329,7 @@ type UserEvents = EventName&lt;UserState&gt;;
 // "nameChanged" | "ageChanged" | "activeChanged"
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// 점 표기법(dot notation) 경로 타입
+// 점 표기법(dot notation) 경로 타입: 중첩 객체의 경로를 문자열로 표현
 type PathOf&lt;T, Prefix extends string = ""&gt; = {
   [K in keyof T & string]: T[K] extends object
     ? `${Prefix}${K}` | PathOf&lt;T[K], `${Prefix}${K}.`&gt;
@@ -346,7 +360,7 @@ type ConfigPath = PathOf&lt;Config&gt;;
       <!-- Slide 10: Key Remapping in Mapped Types -->
       <section>
         <h2>키 재매핑 (Key Remapping)</h2>
-        <p><code>as</code> 절로 매핑된 타입의 키를 변환</p>
+        <p><code>as</code> 절로 매핑된 타입의 키(프로퍼티 이름)를 변환</p>
         <pre><code class="typescript" data-trim data-noescape>
 // 기본 키 재매핑
 type PrefixKeys&lt;T, P extends string&gt; = {
@@ -362,12 +376,12 @@ type PrefixedAPI = PrefixKeys&lt;API, "api"&gt;;
 // { api_getUser: () => User; api_getPost: () => Post }
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// 키 필터링 (never로 제거)
+// 키 필터링: as 절에서 never를 반환하면 해당 키가 제거됨
 type RemoveReadonly&lt;T&gt; = {
   [K in keyof T as K extends `readonly_${string}` ? never : K]: T[K];
 };
 
-// 특정 타입의 프로퍼티만 제거
+// 특정 타입의 프로퍼티만 제거 (값이 U 타입이면 never로 키 삭제)
 type OmitByType&lt;T, U&gt; = {
   [K in keyof T as T[K] extends U ? never : K]: T[K];
 };
@@ -478,17 +492,18 @@ type WithoutThis = OmitThisParameter&lt;typeof greet&gt;; // (greeting: string) 
 
       <!-- Slide 13: Recursive Types -->
       <section>
-        <h2>재귀 타입 (Recursive Types)</h2>
-        <p>자기 자신을 참조하는 타입으로 트리 구조 등을 표현</p>
+        <h2>재귀 타입 (Recursive Type)</h2>
+        <p>자기 자신을 참조하는 타입으로 트리 구조 등을 표현. "폴더 안에 폴더가 있는" 것처럼 중첩되는 구조를 타입으로 표현할 수 있습니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 // JSON 값 타입 (재귀적 정의)
+// JSONValue 안에 JSONValue가 또 들어갈 수 있음 (자기 자신 참조!)
 type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONValue[]
-  | { [key: string]: JSONValue };
+  | string                         // 문자열
+  | number                         // 숫자
+  | boolean                        // 참/거짓
+  | null                           // 없음
+  | JSONValue[]                    // JSON 값의 배열 (재귀!)
+  | { [key: string]: JSONValue };  // JSON 값의 객체 (재귀!)
 
 const data: JSONValue = {
   name: "홍길동",
@@ -534,12 +549,13 @@ const project: TreeNode = {
         <h2>재귀 타입 유틸리티</h2>
         <pre><code class="typescript" data-trim data-noescape>
 // 깊은 읽기전용 (Deep Readonly)
+// 일반 Readonly는 1단계만 적용되지만, 이것은 모든 중첩 레벨에 적용
 type DeepReadonly&lt;T&gt; =
-  T extends (infer U)[]
-    ? ReadonlyArray&lt;DeepReadonly&lt;U&gt;&gt;
-    : T extends object
-    ? { readonly [K in keyof T]: DeepReadonly&lt;T[K]&gt; }
-    : T;
+  T extends (infer U)[]                              // 배열이면?
+    ? ReadonlyArray&lt;DeepReadonly&lt;U&gt;&gt;                  // 읽기전용 배열로 + 요소도 재귀
+    : T extends object                                // 객체면?
+    ? { readonly [K in keyof T]: DeepReadonly&lt;T[K]&gt; } // 각 프로퍼티에 재귀 적용
+    : T;                                              // 원시 타입이면 그대로
 
 interface Config {
   db: { host: string; ports: number[] };
@@ -578,12 +594,15 @@ function mergeConfig(
 
       <!-- Slide 15: Branded Types / Opaque Types -->
       <section>
-        <h2>브랜디드 타입 (Branded / Opaque Types)</h2>
-        <p>구조적 타입 시스템에서 <strong>명목적 타입</strong>을 흉내내는 기법</p>
+        <h2>브랜디드 타입 (Branded Type)</h2>
+        <p>구조적 타입 시스템에서 <strong>명목적 타입</strong>(이름이 다르면 다른 타입)을 흉내내는 기법</p>
+        <div class="tip" style="margin-bottom: 0.3em; font-size: 0.7em;">
+          <strong>왜 이게 필요한가?</strong> TypeScript에서는 구조(모양)가 같으면 같은 타입으로 취급합니다. 하지만 "사용자 ID"와 "게시글 ID"는 둘 다 숫자여도 섞이면 안 됩니다. 브랜디드 타입은 이런 혼동을 막아줍니다.
+        </div>
         <pre><code class="typescript" data-trim data-noescape>
-// 문제: 구조적으로 같은 타입이 혼동됨
-type UserId = number;
-type PostId = number;
+// 문제: 구조가 같으면 같은 타입으로 취급됨
+type UserId = number;   // 사용자 ID
+type PostId = number;   // 게시글 ID (둘 다 그냥 number!)
 
 function getUser(id: UserId) { /* ... */ }
 function getPost(id: PostId) { /* ... */ }
@@ -594,6 +613,7 @@ getUser(postId); // 에러 없음! 하지만 논리적 버그!
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
 // 해결: 브랜디드 타입으로 구별
+// 보이지 않는 "브랜드 태그"를 붙여서 타입을 구분
 type Brand&lt;T, B extends string&gt; = T & { readonly __brand: B };
 
 type UserId = Brand&lt;number, "UserId"&gt;;
@@ -622,14 +642,14 @@ getUser(userId);  // OK!
       <section>
         <h2>브랜디드 타입 실전 활용</h2>
         <pre><code class="typescript" data-trim data-noescape>
-// 유효성이 검증된 값을 타입으로 보장
+// 유효성이 검증된 값을 타입으로 보장하는 실전 패턴
 type Brand&lt;T, B extends string&gt; = T & { readonly __brand: B };
 
-type Email = Brand&lt;string, "Email"&gt;;
-type PositiveNumber = Brand&lt;number, "PositiveNumber"&gt;;
-type NonEmptyString = Brand&lt;string, "NonEmptyString"&gt;;
+type Email = Brand&lt;string, "Email"&gt;;              // 검증된 이메일
+type PositiveNumber = Brand&lt;number, "PositiveNumber"&gt;; // 양수만
+type NonEmptyString = Brand&lt;string, "NonEmptyString"&gt;; // 비어있지 않은 문자열
 
-// 검증 함수 = 브랜드 생성 함수
+// 검증 함수 = 브랜드를 부여하는 함수 (검증 통과해야만 타입 획득)
 function validateEmail(input: string): Email {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(input)) {
@@ -656,16 +676,17 @@ sendEmail(email, "안녕하세요");                    // OK!
         <div class="key-point fragment">
           <h3>핵심 장점</h3>
           <p>"검증되지 않은 값"과 "검증된 값"을 <strong>타입 레벨에서 구분</strong>하여<br>
-          런타임 에러를 컴파일 타임에 방지합니다.</p>
+          런타임 (Runtime, 실행 시점) 에러를 컴파일 타임 (Compile Time, 코드 변환 시점)에 방지합니다.</p>
         </div>
       </section>
 
       <!-- Slide 17: Type-Level Programming -->
       <section>
         <h2>타입 레벨 프로그래밍</h2>
-        <p>타입 시스템을 프로그래밍 언어처럼 활용하기</p>
+        <p>타입 시스템 자체를 프로그래밍 언어처럼 활용하기. 값이 아닌 <strong>타입</strong>을 대상으로 조건문, 반복, 재귀 등을 수행합니다. 실행 시점(런타임)이 아닌 코드 작성 시점(컴파일 타임)에 모든 계산이 이루어집니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
-// 타입 레벨 문자열 조작: camelCase -> kebab-case
+// 타입 레벨 문자열 조작: camelCase -> kebab-case 변환
+// 대문자를 만나면 앞에 "-"를 붙이고 소문자로 변환
 type CamelToKebab&lt;S extends string&gt; =
   S extends `${infer Head}${infer Tail}`
     ? Head extends Uppercase&lt;Head&gt;
@@ -678,19 +699,21 @@ type K2 = CamelToKebab&lt;"fontSize"&gt;;          // "font-size"
 type K3 = CamelToKebab&lt;"borderTopWidth"&gt;;    // "border-top-width"
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
-// 타입 레벨 숫자 비교 (튜플 길이 활용)
+// 타입 레벨 덧셈 (튜플 길이를 이용한 트릭)
+// 길이가 N인 튜플(배열)을 만들어서 길이로 숫자를 표현
 type BuildTuple&lt;N extends number, T extends any[] = []&gt; =
   T["length"] extends N ? T : BuildTuple&lt;N, [...T, any]&gt;;
 
+// 두 튜플을 합치면 길이가 합산됨 = 덧셈!
 type Add&lt;A extends number, B extends number&gt; =
   [...BuildTuple&lt;A&gt;, ...BuildTuple&lt;B&gt;]["length"];
 
-type Sum = Add&lt;3, 4&gt;;  // 7
+type Sum = Add&lt;3, 4&gt;;  // 7 (타입 레벨에서 계산!)
 
-// 타입 레벨 배열 뒤집기
+// 타입 레벨 배열 뒤집기 (재귀 활용)
 type Reverse&lt;T extends any[]&gt; =
   T extends [infer First, ...infer Rest]
-    ? [...Reverse&lt;Rest&gt;, First]
+    ? [...Reverse&lt;Rest&gt;, First]  // 나머지를 뒤집고 첫 번째를 맨 뒤에
     : [];
 
 type Rev = Reverse&lt;[1, 2, 3, 4]&gt;; // [4, 3, 2, 1]

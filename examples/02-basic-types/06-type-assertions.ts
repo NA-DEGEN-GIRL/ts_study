@@ -2,17 +2,22 @@
  * Chapter 02 - Basic Types
  * 06-type-assertions.ts - 타입 단언 (Type Assertions)
  *
- * as 키워드, angle bracket 문법, const 단언을 학습합니다.
- * 타입 단언은 개발자가 컴파일러보다 타입을 더 잘 알 때 사용합니다.
+ * 이 파일에서 배울 내용:
+ * - 타입 단언 (Type Assertion) - 개발자가 컴파일러에게 "이 타입이 맞아"라고 알려주는 방법
+ * - as 키워드 문법 (권장)과 angle-bracket 문법
+ * - const 단언 (Const Assertion) - 리터럴 (Literal) 타입으로 고정
+ * - Non-null 단언 (!) - null이 아님을 확신할 때 사용
+ * 왜 필요한가? 컴파일러가 타입을 정확히 알 수 없을 때 개발자가 명시
  */
 
 console.log("=== 타입 단언 (Type Assertions) ===\n");
 
 // ============================================
-// 1. as 키워드 문법 (권장)
+// 1. as 키워드 문법 (권장) - 타입을 명시적으로 지정
 // ============================================
 
 console.log("--- 1. as 키워드 ---\n");
+// 왜 필요한가? JSX와 호환되며 가장 일반적인 타입 단언 방법
 
 // DOM 조작 예제
 let inputValue: unknown = "TypeScript";
@@ -102,10 +107,11 @@ console.log("⚠️  이중 단언은 타입 안정성을 해칩니다");
 console.log("    가능한 한 피하세요!");
 
 // ============================================
-// 5. const 단언 (const assertions)
+// 5. const 단언 (Const Assertion) - 값을 리터럴 타입으로 좁히기
 // ============================================
 
 console.log("\n--- 5. const 단언 ---\n");
+// 왜 필요한가? 객체나 배열을 불변으로 만들고 정확한 리터럴 타입 추론
 
 // 일반 객체 (타입이 넓게 추론됨)
 let regularObject = {

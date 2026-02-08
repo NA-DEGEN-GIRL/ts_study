@@ -67,11 +67,12 @@ export namespace MathUtils {
   export const PI = 3.14159;
 }
 
-// 연습 5: 모듈 증강 개념
+// 연습 5: 모듈 증강 (Module Augmentation) 개념
 // TODO: 기존 타입을 확장하는 개념을 이해하세요
 // 실제로는 다른 파일의 모듈을 확장할 때 사용합니다
 
 // 글로벌 스코프 확장 예제
+// declare global로 전역 타입을 확장할 수 있습니다
 declare global {
   interface String {
     // TODO: String 타입에 truncate 메서드를 추가하는 선언을 작성하세요

@@ -1,8 +1,12 @@
 /**
  * Chapter 07-01: typeof 타입 가드
  *
- * typeof 연산자를 사용하여 유니온 타입을 좁히는 방법을 학습합니다.
- * TypeScript는 typeof 검사 후 각 분기에서 타입을 자동으로 좁혀줍니다.
+ * 이 파일에서 배울 내용:
+ * - 타입 가드 (Type Guard) - 조건문으로 타입을 좁히는 기법
+ * - typeof 연산자 - "string", "number", "boolean" 등의 타입 확인
+ * - 타입 좁히기 (Type Narrowing) - 유니온 (Union) 타입을 구체적 타입으로 좁힘
+ * - Array.isArray() - 배열 여부 확인
+ * 왜 필요한가? 유니온 타입에서 각 타입의 메서드를 안전하게 사용하기 위해
  */
 
 console.log("=== typeof 타입 가드 예제 ===\n");

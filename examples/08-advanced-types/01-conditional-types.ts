@@ -1,8 +1,12 @@
 /**
  * Chapter 08-01: 조건부 타입 (Conditional Types)
  *
- * T extends U ? X : Y 문법을 사용하여 조건에 따라 다른 타입을 반환합니다.
- * infer 키워드로 타입을 추출할 수 있습니다.
+ * 이 파일에서 배울 내용:
+ * - 조건부 타입 (Conditional Type) - 조건에 따라 다른 타입 반환 (T extends U ? X : Y)
+ * - infer 키워드 - 타입의 일부분을 추론하여 추출
+ * - 타입 추출 패턴 - Promise<T>에서 T 추출, 배열에서 요소 타입 추출
+ * - 유틸리티 타입 구현 - NonNullable, ReturnType 등을 직접 만들기
+ * 왜 필요한가? 타입 수준에서 조건 로직을 구현하여 정교한 타입 조작 가능
  */
 
 console.log("=== 조건부 타입 예제 ===\n");

@@ -1,7 +1,7 @@
 /**
  * 챕터 10: 데코레이터
  *
- * 이 챕터에서는 TypeScript의 데코레이터를 학습합니다:
+ * 이 챕터에서는 TypeScript의 데코레이터 (Decorator)를 학습합니다:
  * - 클래스 데코레이터
  * - 메서드 데코레이터
  * - 프로퍼티 데코레이터
@@ -10,8 +10,11 @@
  * 참고: tsconfig.json에서 experimentalDecorators: true 필요
  */
 
-// 연습 1: 클래스 데코레이터
+// 연습 1: 클래스 데코레이터 (Decorator)
 // TODO: 클래스에 타임스탬프를 추가하는 데코레이터를 작성하세요
+// 클래스 데코레이터는 생성자를 받아서 수정된 클래스를 반환합니다
+// 기존 클래스를 확장하여 timestamp 속성을 추가하세요
+// 힌트: return class extends constructor { timestamp = new Date(); }
 function WithTimestamp<T extends { new(...args: any[]): {} }>(constructor: T) {
   // 기존 클래스를 확장하여 timestamp 속성을 추가하세요
   // 힌트: return class extends constructor { ... }
@@ -23,8 +26,9 @@ class User {
   constructor(public name: string) {}
 }
 
-// 연습 2: 메서드 데코레이터
+// 연습 2: 메서드 데코레이터 (Decorator)
 // TODO: 메서드 실행 시간을 측정하는 데코레이터를 작성하세요
+// 메서드 데코레이터는 descriptor를 수정하여 메서드 동작을 변경합니다
 function Measure(
   target: any,
   propertyKey: string,
@@ -35,6 +39,7 @@ function Measure(
 
   // descriptor.value를 새로운 함수로 교체하세요
   // 실행 전후 시간을 측정하여 콘솔에 출력하세요
+  // performance.now()로 시간을 측정합니다
   descriptor.value = function(...args: any[]) {
     // 여기에 구현하세요
   };
@@ -51,8 +56,9 @@ class Calculator {
   }
 }
 
-// 연습 3: 프로퍼티 데코레이터
+// 연습 3: 프로퍼티 데코레이터 (Decorator)
 // TODO: 프로퍼티의 최소/최대값을 검증하는 데코레이터를 작성하세요
+// 프로퍼티 데코레이터는 getter/setter를 정의하여 값 검증을 수행합니다
 function Range(min: number, max: number) {
   return function(target: any, propertyKey: string) {
     let value: number;
@@ -90,8 +96,9 @@ class Product {
   }
 }
 
-// 연습 4: 데코레이터 팩토리
+// 연습 4: 데코레이터 팩토리 (Decorator Factory)
 // TODO: 로그 레벨을 설정할 수 있는 데코레이터 팩토리를 작성하세요
+// 데코레이터 팩토리는 매개변수를 받아서 데코레이터를 반환하는 함수입니다
 function Log(level: "info" | "warn" | "error") {
   // 데코레이터를 반환하는 팩토리 함수입니다
   return function(

@@ -2,17 +2,22 @@
  * Chapter 02 - Basic Types
  * 07-literal-union.ts - 리터럴 타입과 유니온 타입
  *
- * 리터럴 타입, 유니온 타입, 타입 좁히기(narrowing)의 기초를 학습합니다.
- * 정확한 값을 타입으로 사용하여 타입 안정성을 높입니다.
+ * 이 파일에서 배울 내용:
+ * - 리터럴 타입 (Literal Type) - 정확한 값 자체를 타입으로 사용
+ * - 유니온 타입 (Union Type) - 여러 타입 중 하나를 허용 (A | B)
+ * - 타입 좁히기 (Type Narrowing) - 유니온 타입을 구체적 타입으로 좁히기
+ * - 타입 가드 (Type Guard) - typeof, instanceof 등으로 타입 확인
+ * 왜 필요한가? 허용된 값만 사용하도록 제한하여 안전성 향상
  */
 
 console.log("=== 리터럴 타입과 유니온 타입 ===\n");
 
 // ============================================
-// 1. 리터럴 타입 (Literal Types)
+// 1. 리터럴 타입 (Literal Type) - 특정 값만 허용하는 타입
 // ============================================
 
 console.log("--- 1. 리터럴 타입 ---\n");
+// 왜 필요한가? string 대신 "left" | "right"로 제한하여 오타 방지
 
 // 문자열 리터럴 타입
 let direction: "left" | "right" | "up" | "down";
@@ -54,10 +59,11 @@ printId(101);
 printId("USER_001");
 
 // ============================================
-// 3. 타입 좁히기 (Type Narrowing) - typeof
+// 3. 타입 좁히기 (Type Narrowing) - 유니온 타입을 구체적으로 좁히기
 // ============================================
 
 console.log("\n--- 3. 타입 좁히기 (typeof) ---\n");
+// 왜 필요한가? if문으로 타입을 좁혀야 해당 타입의 메서드 사용 가능
 
 function formatValue(value: string | number): string {
   if (typeof value === "string") {

@@ -2,8 +2,12 @@
  * Chapter 04 - Interfaces
  * 03-type-alias.ts - 타입 별칭
  *
- * 타입 별칭(Type Alias)과 유니온/교차 타입을 학습합니다.
- * 인터페이스와의 차이점과 각각의 사용 시점을 이해합니다.
+ * 이 파일에서 배울 내용:
+ * - 타입 별칭 (Type Alias) - type 키워드로 타입에 이름 붙이기
+ * - 유니온 타입 (Union Type) - | 연산자로 여러 타입 중 하나
+ * - 교차 타입 (Intersection Type) - & 연산자로 여러 타입 결합
+ * - 인터페이스 (Interface) vs 타입 별칭 비교
+ * 왜 필요한가? 복잡한 타입에 이름을 붙여 재사용하고 가독성 향상
  */
 
 console.log("=== 타입 별칭 (Type Alias) ===\n");

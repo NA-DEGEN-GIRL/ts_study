@@ -1,16 +1,17 @@
 /**
  * 챕터 7: 타입 좁히기 - 정답
  *
- * 이 챕터에서는 타입 좁히기(Type Narrowing)를 학습합니다:
- * - typeof 타입 가드
+ * 이 챕터에서는 타입 좁히기 (Type Narrowing)를 학습합니다:
+ * - typeof 타입 가드 (Type Guard)
  * - instanceof 타입 가드
  * - 사용자 정의 타입 가드
- * - Discriminated Union
- * - Exhaustiveness Checking
+ * - 판별 유니온 (Discriminated Union)
+ * - 완전성 검사 (Exhaustiveness Checking)
  */
 
-// 연습 1: typeof 타입 가드
-// 해설: typeof 연산자로 런타임에 타입을 체크하면 TypeScript가 타입을 좁힙니다
+// 연습 1: typeof 타입 가드 (Type Guard)
+// 풀이: typeof 연산자로 런타임에 타입을 체크하면 TypeScript가 타입을 좁힙니다
+// if 문 안에서는 value가 number 타입으로 좁혀지므로 number 메서드를 안전하게 사용할 수 있습니다
 function process(value: number | string): number | string {
   if (typeof value === "number") {
     return value * 2;
@@ -35,7 +36,7 @@ function makeSound(animal: Dog | Cat): string {
   return animal.meow();
 }
 
-// 연습 3: 사용자 정의 타입 가드
+// 연습 3: 사용자 정의 타입 가드 (Type Guard)
 interface Circle {
   kind: "circle";
   radius: number;
@@ -48,7 +49,8 @@ interface Square {
 
 type Shape = Circle | Square;
 
-// 해설: "value is Type" 형식의 반환 타입으로 사용자 정의 타입 가드를 만듭니다
+// 풀이: "value is Type" 형식의 반환 타입으로 사용자 정의 타입 가드를 만듭니다
+// 함수가 true를 반환하면 TypeScript는 해당 값이 Circle 타입임을 알게 됩니다
 function isCircle(shape: Shape): shape is Circle {
   return shape.kind === "circle";
 }
@@ -89,8 +91,9 @@ function handleResponse(response: ApiResponse): string {
   }
 }
 
-// 연습 5: Exhaustiveness Checking (완전성 검사)
-// 해설: never 타입을 사용하여 모든 케이스를 처리했는지 컴파일 타임에 확인
+// 연습 5: 완전성 검사 (Exhaustiveness Checking)
+// 풀이: never 타입을 사용하여 모든 케이스를 처리했는지 컴파일 타임에 확인
+// never는 "절대 발생할 수 없는" 타입입니다
 function assertNever(value: never): never {
   throw new Error(`예상하지 못한 값: ${value}`);
 }
@@ -105,6 +108,7 @@ function handleResponseComplete(response: ApiResponse): string {
       return "로딩 중...";
     default:
       // 모든 케이스를 처리했으면 여기는 never 타입이 됩니다
+      // 만약 새로운 status가 추가되면 컴파일 에러가 발생하여 누락을 방지합니다
       return assertNever(response);
   }
 }

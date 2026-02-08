@@ -9,11 +9,14 @@
  */
 
 // 연습 1: 화살표 함수에 타입 지정하기
-// 해설: 화살표 함수도 일반 함수와 동일하게 타입을 지정합니다
+// 풀이: 화살표 함수도 일반 함수와 동일하게 타입을 지정합니다
+// 화살표 함수는 간결한 문법으로 함수를 정의할 수 있습니다
 const multiply = (a: number, b: number): number => a * b;
 
 // 연습 2: 선택적 매개변수와 기본 매개변수
-// 해설: ?를 사용하여 선택적 매개변수를, = 을 사용하여 기본값을 지정합니다
+// 풀이: ?를 사용하여 선택적 매개변수를, = 을 사용하여 기본값을 지정합니다
+// 선택적 매개변수는 함수 호출 시 생략할 수 있으며, undefined가 전달됩니다
+// 기본 매개변수는 값이 전달되지 않으면 기본값이 사용됩니다
 function printUserInfo(
   name: string,
   age?: number,
@@ -24,15 +27,17 @@ function printUserInfo(
 }
 
 // 연습 3: Rest 매개변수
-// 해설: ...를 사용하여 가변 인자를 배열로 받습니다
+// 풀이: ...를 사용하여 가변 인자를 배열로 받습니다
+// 개수가 정해지지 않은 인자를 받을 때 유용합니다
 function average(...numbers: number[]): number {
   if (numbers.length === 0) return 0;
   const sum = numbers.reduce((acc, n) => acc + n, 0);
   return sum / numbers.length;
 }
 
-// 연습 4: 함수 오버로드
-// 해설: 함수 오버로드를 사용하여 입력 타입에 따라 반환 타입을 다르게 지정합니다
+// 연습 4: 함수 오버로드 (Function Overload)
+// 풀이: 함수 오버로드를 사용하여 입력 타입에 따라 반환 타입을 다르게 지정합니다
+// 같은 함수가 다른 타입의 인자를 받아 다른 타입을 반환할 때 사용합니다
 // 오버로드 시그니처 (구현 없음)
 function double(value: number): number;
 function double(value: string): string;
@@ -45,7 +50,8 @@ function double(value: number | string): number | string {
 }
 
 // 연습 5: 함수 타입 표현식
-// 해설: (param: Type) => ReturnType 형식으로 함수 타입을 정의합니다
+// 풀이: (param: Type) => ReturnType 형식으로 함수 타입을 정의합니다
+// 콜백 (Callback) 함수의 타입을 명시적으로 지정하여 타입 안전성을 확보합니다
 function mapArray<T, U>(arr: T[], fn: (item: T) => U): U[] {
   return arr.map(fn);
 }

@@ -15,19 +15,22 @@
       <!-- Slide 1: Title -->
       <section class="chapter-title">
         <div class="chapter-number">Chapter 7</div>
-        <h1>타입 좁히기</h1>
-        <p class="subtitle">Type Narrowing - 넓은 타입을 좁은 타입으로</p>
+        <h1>타입 좁히기 (Type Narrowing)</h1>
+        <p class="subtitle">넓은 타입을 좁은 타입으로</p>
         <br>
         <p style="font-size:0.6em; color:#888;">
-          <span class="badge badge-blue">Type Guards</span>
-          <span class="badge badge-green">Discriminated Unions</span>
-          <span class="badge badge-orange">Control Flow</span>
+          <span class="badge badge-blue">타입 가드 (Type Guard)</span>
+          <span class="badge badge-green">판별 유니온 (Discriminated Union)</span>
+          <span class="badge badge-orange">제어 흐름 분석</span>
         </p>
       </section>
 
       <!-- Slide 2: What is Type Narrowing? -->
       <section>
         <h2>타입 좁히기란?</h2>
+        <div class="tip" style="margin-bottom: 0.5em;">
+          <strong>왜 이게 필요한가?</strong> TypeScript가 타입을 확실히 알 수 없을 때, 우리가 도와줘야 합니다. 예를 들어 <code>string | number</code> 타입인 값은 <code>.toUpperCase()</code>도 <code>.toFixed()</code>도 바로 쓸 수 없습니다. 어떤 타입인지 먼저 확인해야 합니다.
+        </div>
         <p>넓은 타입(유니온 등)을 조건문을 통해 더 구체적인 타입으로 추론하는 과정</p>
         <pre><code class="typescript" data-trim data-noescape>
 function printValue(value: string | number) {
@@ -53,7 +56,7 @@ function printValue(value: string | number) {
 
       <!-- Slide 3: typeof Guards -->
       <section>
-        <h2>typeof 가드</h2>
+        <h2><code>typeof</code> 타입 가드</h2>
         <p>원시 타입 구별에 가장 기본적인 방법</p>
         <pre><code class="typescript" data-trim data-noescape>
 // typeof가 반환하는 값들:
@@ -77,7 +80,7 @@ function formatInput(input: string | number | boolean): string {
 function process(value: string | null) {
   if (typeof value === "object") {
     // value는 여전히 null일 수 있음!
-    // value.toUpperCase(); // 런타임 에러 가능!
+    // value.toUpperCase(); // 런타임 (Runtime, 실행 시점) 에러 가능!
   }
   if (value !== null) {
     value.toUpperCase(); // 안전!
@@ -222,8 +225,8 @@ function handleResponse(res: SuccessResponse | ErrorResponse) {
 
       <!-- Slide 7: instanceof -->
       <section>
-        <h2>instanceof 체크</h2>
-        <p>클래스 인스턴스 여부를 판별하여 타입 좁히기</p>
+        <h2><code>instanceof</code> 체크</h2>
+        <p>클래스 인스턴스 (Instance, 클래스로 만든 실제 객체) 여부를 판별하여 타입 좁히기</p>
         <pre><code class="typescript" data-trim data-noescape>
 class HttpError extends Error {
   constructor(
@@ -269,8 +272,8 @@ function formatDate(value: string | Date): string {
 
       <!-- Slide 8: Type Predicates -->
       <section>
-        <h2>타입 서술어 (Type Predicates)</h2>
-        <p><code>is</code> 키워드로 커스텀 타입 가드 함수를 만들기</p>
+        <h2>타입 서술어 (Type Predicate)</h2>
+        <p><code>is</code> 키워드로 커스텀 타입 가드 함수를 만들기. "이 함수가 true를 반환하면, 이 값은 반드시 이 타입이다"라고 TypeScript에게 알려주는 것입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
 interface Cat {
   name: string;
@@ -283,8 +286,9 @@ interface Dog {
 }
 
 // 반환 타입이 "pet is Cat" - 타입 서술어!
+// "이 함수가 true를 반환하면 pet은 Cat 타입이다"
 function isCat(pet: Cat | Dog): pet is Cat {
-  return "meow" in pet;
+  return "meow" in pet;  // meow 메서드가 있으면 Cat
 }
 
 function isDog(pet: Cat | Dog): pet is Dog {
@@ -323,12 +327,12 @@ const admins: AdminUser[] = users.filter(isAdmin);
 
       <!-- Slide 9: Discriminated Unions -->
       <section>
-        <h2>판별 유니온 (Discriminated Unions)</h2>
-        <p>공통 리터럴 프로퍼티로 유니온 멤버를 구별하는 강력한 패턴</p>
+        <h2>판별 유니온 (Discriminated Union)</h2>
+        <p>공통 리터럴 프로퍼티(판별자)로 유니온 멤버를 구별하는 강력한 패턴. 각 타입에 "이름표"를 붙여놓고 그 이름표로 구분하는 방식입니다.</p>
         <pre><code class="typescript" data-trim data-noescape>
-// 판별자(discriminant): kind 프로퍼티
+// 판별자(discriminant, 이름표 역할): kind 프로퍼티
 interface Circle {
-  kind: "circle";  // 리터럴 타입!
+  kind: "circle";  // 리터럴 타입 = 이 이름표로 구분!
   radius: number;
 }
 
@@ -368,12 +372,12 @@ function getArea(shape: Shape): number {
       <section>
         <h2>판별 유니온 실전: Redux 액션 / 상태 머신</h2>
         <pre><code class="typescript" data-trim data-noescape>
-// Redux 스타일 액션
+// Redux 스타일 액션: type이 판별자(이름표) 역할
 type Action =
-  | { type: "FETCH_START" }
-  | { type: "FETCH_SUCCESS"; data: any[] }
-  | { type: "FETCH_ERROR"; error: string }
-  | { type: "RESET" };
+  | { type: "FETCH_START" }                    // 데이터 가져오기 시작
+  | { type: "FETCH_SUCCESS"; data: any[] }     // 성공: data 포함
+  | { type: "FETCH_ERROR"; error: string }     // 실패: error 포함
+  | { type: "RESET" };                         // 초기화
 
 interface State {
   loading: boolean;
@@ -419,7 +423,7 @@ function renderUser(state: AsyncState&lt;User&gt;) {
       <!-- Slide 11: Exhaustive Checking with never -->
       <section>
         <h2>완전성 검사 (Exhaustive Checking)</h2>
-        <p><code>never</code> 타입으로 모든 경우를 처리했는지 컴파일 타임에 검증</p>
+        <p><code>never</code> 타입으로 모든 경우를 처리했는지 컴파일 타임 (Compile Time, 코드 변환 시점)에 검증</p>
         <pre><code class="typescript" data-trim data-noescape>
 type Shape = Circle | Rectangle | Triangle;
 
@@ -432,7 +436,8 @@ function getArea(shape: Shape): number {
     case "triangle":
       return (shape.base * shape.height) / 2;
     default:
-      // 모든 케이스를 처리했다면 shape는 never 타입
+      // 모든 케이스를 처리했다면 여기 도달할 수 없음
+      // shape는 never 타입(존재할 수 없는 타입)이 됨
       const _exhaustive: never = shape;
       return _exhaustive;
   }
@@ -464,17 +469,19 @@ type Shape = Circle | Rectangle | Triangle | Pentagon;
         <h2>단언 함수 (Assertion Functions)</h2>
         <p>조건이 거짓이면 에러를 던지고, 참이면 타입을 좁힘</p>
         <pre><code class="typescript" data-trim data-noescape>
-// asserts 키워드: "이 함수가 반환되면 조건이 참이다"
+// asserts 키워드: "이 함수가 에러 없이 반환되면 조건이 참이다"
+// 조건이 거짓이면 에러를 던져서 프로그램을 멈춤
 function assertIsString(value: unknown): asserts value is string {
   if (typeof value !== "string") {
     throw new Error(`Expected string, got ${typeof value}`);
   }
+  // 에러가 안 났다면 value는 string이 확실!
 }
 
 function processInput(input: unknown) {
-  assertIsString(input);
+  assertIsString(input);   // 여기서 에러가 안 나면...
   // 이 줄에 도달했다면 input은 반드시 string!
-  console.log(input.toUpperCase()); // OK: string
+  console.log(input.toUpperCase()); // OK: string으로 좁혀짐
 }
         </code></pre>
         <pre class="fragment"><code class="typescript" data-trim data-noescape>
