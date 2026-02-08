@@ -1,7 +1,7 @@
 /**
  * Narration Player for Reveal.js slides
  * - Plays pre-generated MP3 audio for each slide
- * - Toggle play/stop via button click or 'N' key
+ * - Toggle play/stop via button click or Space key
  * - Auto-stops on slide change
  */
 (function () {
@@ -39,7 +39,7 @@
     btn = document.createElement('button');
     btn.className = 'narration-btn hidden';
     btn.setAttribute('aria-label', '나레이션 재생');
-    btn.setAttribute('title', '나레이션 재생/정지 (N)');
+    btn.setAttribute('title', '나레이션 재생/정지 (Space)');
     btn.innerHTML =
       '<svg class="icon-play" viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>' +
       '<svg class="icon-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
@@ -140,20 +140,21 @@
     Reveal.on('ready', onSlideChanged);
     Reveal.on('slidechanged', onSlideChanged);
 
-    // Keyboard shortcut: N key
+    // Keyboard shortcut: Space key (capture phase to intercept before Reveal.js)
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'n' || e.key === 'N') {
+      if (e.key === ' ' || e.code === 'Space') {
         // Ignore if typing in input/textarea
         var tag = e.target.tagName.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
         if (e.ctrlKey || e.altKey || e.metaKey) return;
 
-        e.preventDefault();
         if (hasNarration()) {
+          e.preventDefault();
+          e.stopPropagation();
           toggle();
         }
       }
-    });
+    }, true);
   }
 
   // Auto-init when DOM ready

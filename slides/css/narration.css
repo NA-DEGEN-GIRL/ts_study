@@ -74,7 +74,7 @@
 
 /* Keyboard shortcut hint */
 .narration-btn::after {
-  content: 'N';
+  content: 'Space';
   position: absolute;
   bottom: -18px;
   left: 50%;
