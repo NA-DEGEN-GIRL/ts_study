@@ -7,13 +7,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
   <link rel="stylesheet" href="css/custom.css">
+  <link rel="stylesheet" href="css/narration.css">
 </head>
 <body>
   <div class="reveal">
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section>
+      <section data-narration="챕터 10, 데코레이터와 메타데이터입니다. 클래스와 메서드에 선언적으로 기능을 추가하는 방법을 배워보겠습니다.">
         <div class="chapter-title">
           <div class="chapter-number">Chapter 10</div>
           <h1>데코레이터 (Decorator) & 메타데이터 (Metadata)</h1>
@@ -30,7 +31,7 @@
       </section>
 
       <!-- Slide 2: What are decorators -->
-      <section>
+      <section data-narration="데코레이터는 클래스, 메서드, 속성 등에 부가 기능을 선언적으로 추가하는 문법입니다. 앳 기호를 붙여서 사용하며, 함수로 구현됩니다.">
         <h2>데코레이터 (Decorator)란?</h2>
         <p>클래스, 메서드, 프로퍼티 등에 <strong>선언적으로 부가 기능</strong>을 추가하는 특별한 함수입니다.</p>
         <div class="tip" style="margin-bottom: 0.5em;">
@@ -74,7 +75,7 @@ class BugReport {
       </section>
 
       <!-- Slide 3: Enabling Decorators -->
-      <section>
+      <section data-narration="데코레이터를 사용하려면 tsconfig에서 experimentalDecorators 옵션을 true로 설정해야 합니다. 새로운 TC39 표준 데코레이터도 소개하겠습니다.">
         <h2>데코레이터 활성화</h2>
         <pre><code class="language-json" data-trim>
 // tsconfig.json
@@ -120,7 +121,7 @@ class BugReport {
       </section>
 
       <!-- Slide 4: Class Decorators -->
-      <section>
+      <section data-narration="클래스 데코레이터는 클래스 전체에 적용되며, 생성자 함수를 매개변수로 받습니다. 클래스에 메타데이터를 추가하거나 동작을 변경할 수 있습니다.">
         <h2>클래스 데코레이터</h2>
         <p>클래스 생성자(constructor)를 인자로 받는 함수</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -166,7 +167,7 @@ console.log((doc as any).createdAt); // Date 객체 출력
       </section>
 
       <!-- Slide 5: Method Decorators -->
-      <section>
+      <section data-narration="메서드 데코레이터는 개별 메서드에 적용됩니다. 대상 객체, 메서드 이름, 속성 디스크립터를 매개변수로 받아 메서드의 동작을 감싸거나 변경합니다.">
         <h2>메서드 데코레이터</h2>
         <p>3개의 매개변수: <code>target</code>, <code>propertyKey</code>, <code>descriptor</code></p>
         <pre><code class="language-typescript" data-trim>
@@ -208,7 +209,7 @@ calc.add(2, 3);
       </section>
 
       <!-- Slide 6: Property Decorators -->
-      <section>
+      <section data-narration="프로퍼티 데코레이터는 클래스의 속성에 적용됩니다. 속성에 검증 로직이나 변환 로직을 추가할 때 사용됩니다.">
         <h2>프로퍼티 데코레이터</h2>
         <p>2개의 매개변수: <code>target</code>, <code>propertyKey</code> (descriptor 없음)</p>
         <pre><code class="language-typescript" data-trim>
@@ -259,7 +260,7 @@ const bad = new User('A', '1234');
       </section>
 
       <!-- Slide 7: Parameter Decorators -->
-      <section>
+      <section data-narration="매개변수 데코레이터는 메서드의 특정 매개변수에 적용됩니다. 의존성 주입 프레임워크에서 매개변수에 메타데이터를 부여할 때 주로 사용됩니다.">
         <h2>매개변수 데코레이터</h2>
         <p>3개의 매개변수: <code>target</code>, <code>methodName</code>, <code>parameterIndex</code></p>
         <pre><code class="language-typescript" data-trim>
@@ -310,7 +311,7 @@ service.createUser(null as any, 'test@test.com');
       </section>
 
       <!-- Slide 8: Decorator Factories -->
-      <section>
+      <section data-narration="데코레이터 팩토리는 데코레이터를 반환하는 함수입니다. 매개변수를 받아 데코레이터의 동작을 설정할 수 있어 더 유연하게 활용됩니다.">
         <h2>데코레이터 팩토리</h2>
         <p>매개변수를 받아 데코레이터를 반환하는 <strong>고차 함수</strong> (함수를 반환하는 함수)</p>
         <pre><code class="language-typescript" data-trim>
@@ -351,7 +352,7 @@ class HeaderComponent {
       </section>
 
       <!-- Slide 9: Decorator Composition -->
-      <section>
+      <section data-narration="여러 데코레이터를 하나의 대상에 적용하면 아래에서 위로 실행됩니다. 각 데코레이터가 독립적인 기능을 담당하여 관심사를 분리할 수 있습니다.">
         <h2>데코레이터 합성 (Composition)</h2>
         <p>여러 데코레이터를 동시에 적용할 수 있습니다.</p>
         <pre><code class="language-typescript" data-trim>
@@ -389,7 +390,7 @@ class Example {
       </section>
 
       <!-- Slide 10: reflect-metadata -->
-      <section>
+      <section data-narration="reflect-metadata 라이브러리를 사용하면 런타임에서 타입 정보를 조회할 수 있습니다. 의존성 주입이나 ORM 같은 프레임워크의 핵심 기반 기술입니다.">
         <h2>reflect-metadata</h2>
         <p>런타임 (Runtime, 프로그램 실행 시점)에 타입 메타데이터 (Metadata, 코드에 대한 부가 정보)를 저장하고 조회하는 라이브러리</p>
         <pre class="fragment"><code class="language-bash" data-trim>
@@ -432,7 +433,7 @@ console.log(path); // '/users'
       </section>
 
       <!-- Slide 11: Real-world Logging Pattern -->
-      <section>
+      <section data-narration="데코레이터를 활용한 실전 패턴을 살펴봅시다. 메서드 호출을 자동으로 로깅하거나, 실행 시간을 측정하는 데코레이터를 만들 수 있습니다.">
         <h2>실전 패턴: 로깅 & 성능 측정</h2>
         <pre><code class="language-typescript" data-trim>
 function measure(label?: string) {
@@ -482,7 +483,7 @@ class DataService {
       </section>
 
       <!-- Slide 12: Real-world Validation & DI -->
-      <section>
+      <section data-narration="검증 데코레이터로 입력값을 자동으로 확인하고, 의존성 주입 데코레이터로 클래스 간의 의존 관계를 자동으로 해결하는 패턴입니다.">
         <h2>실전 패턴: 검증 & 의존성 주입 (Dependency Injection)</h2>
         <p style="font-size: 0.8em; color: #aaa;">의존성 주입(DI)이란: 클래스가 필요로 하는 서비스(의존성)를 직접 생성하지 않고, 외부에서 자동으로 연결해주는 패턴입니다.</p>
         <pre><code class="language-typescript" data-trim>
@@ -531,7 +532,7 @@ class AppController {
       </section>
 
       <!-- Slide 13: TC39 Stage 3 Decorators -->
-      <section>
+      <section data-narration="TC39 표준 데코레이터는 실험적 데코레이터와 문법이 다릅니다. 새로운 표준은 보다 체계적인 API를 제공하며 타입스크립트 5.0부터 지원합니다.">
         <h2>TC39 Stage 3 데코레이터 (새 표준)</h2>
         <p>TypeScript 5.0+에서 지원하는 ECMAScript 표준 데코레이터</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -576,7 +577,7 @@ new Person('홍길동').greet();
       </section>
 
       <!-- Slide 14: TC39 Decorators - More Examples -->
-      <section>
+      <section data-narration="TC39 표준 데코레이터의 추가 예제를 살펴봅시다. 접근자 데코레이터와 초기화 훅 등 새로운 기능을 활용한 패턴입니다.">
         <h2>TC39 데코레이터 - 추가 예제</h2>
         <pre><code class="language-typescript" data-trim>
 // 클래스 데코레이터 (새 표준)
@@ -622,7 +623,7 @@ handler(); // "클릭 버튼 클릭됨" - this가 바인딩됨!
       </section>
 
       <!-- Slide 15: Summary -->
-      <section>
+      <section data-narration="챕터 10을 마치겠습니다. 클래스, 메서드, 프로퍼티, 매개변수 데코레이터와 팩토리, 합성, 그리고 TC39 표준 데코레이터까지 학습했습니다.">
         <h2>Chapter 10 요약</h2>
         <div class="key-point">
           <h3>데코레이터 종류와 매개변수</h3>
@@ -707,5 +708,6 @@ handler(); // "클릭 버튼 클릭됨" - this가 바인딩됨!
       }
     }, true);
   </script>
+  <script src="js/narration.js"></script>
 </body>
 </html>

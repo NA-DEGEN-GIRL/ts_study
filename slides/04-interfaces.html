@@ -8,13 +8,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
   <link rel="stylesheet" href="css/custom.css">
+  <link rel="stylesheet" href="css/narration.css">
 </head>
 <body>
   <div class="reveal">
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section class="chapter-title" data-transition="zoom">
+      <section class="chapter-title" data-transition="zoom" data-narration="챕터 4, 인터페이스와 타입 별칭입니다. 객체의 구조를 정의하는 핵심 개념을 알아보겠습니다.">
         <span class="chapter-number">Chapter 04</span>
         <h1>인터페이스 (Interface) &amp; 타입 별칭 (Type Alias)</h1>
         <p class="subtitle">복잡한 타입 (Type) 구조를 우아하게 정의하는 방법</p>
@@ -23,7 +24,7 @@
       </section>
 
       <!-- Slide 2: Interface Basics -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="인터페이스는 객체의 구조를 정의하는 방법입니다. 속성의 이름과 타입을 미리 지정하여 객체가 특정 형태를 따르도록 강제합니다.">
         <h2>인터페이스 기초</h2>
         <div class="key-point">
           <h3>핵심 개념</h3>
@@ -61,7 +62,7 @@ const also_bad: User = {
       </section>
 
       <!-- Slide 3: Optional Properties -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="속성 이름 뒤에 물음표를 붙이면 선택적 속성이 됩니다. 있어도 되고 없어도 되는 속성을 정의할 때 사용합니다.">
         <h2>선택적 속성 (Optional Property)</h2>
         <pre><code class="language-typescript">// ? 를 붙이면 선택적 속성
 interface User {
@@ -90,7 +91,7 @@ function sendEmail(user: User): void {
       </section>
 
       <!-- Slide 4: Readonly Properties -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="readonly 키워드를 사용하면 속성을 수정할 수 없도록 보호할 수 있습니다. 한 번 초기화된 후에는 변경이 불가능합니다.">
         <h2>읽기 전용 속성 (Readonly)</h2>
         <pre><code class="language-typescript">// readonly로 변경 불가 속성 만들기
 interface Config {
@@ -127,7 +128,7 @@ function movePoint(point: Point, dx: number, dy: number): Point {
       </section>
 
       <!-- Slide 5: Index Signatures -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="인덱스 시그니처를 사용하면 동적인 키를 가진 객체의 타입을 정의할 수 있습니다. 대괄호 안에 키의 타입을 지정하고, 값의 타입을 정의합니다.">
         <h2>인덱스 시그니처 (Index Signature)</h2>
         <p>동적 속성 이름을 가진 객체 타입을 정의합니다.<br>
         <span style="font-size: 0.8em; color: #aaa;">속성 이름을 미리 알 수 없을 때, "어떤 이름이든 이 타입의 값을 가진다"고 정의하는 방법입니다.</span></p>
@@ -167,7 +168,7 @@ const response: ApiResponse = {
       </section>
 
       <!-- Slide 6: Extending Interfaces -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="extends 키워드를 사용하면 기존 인터페이스를 확장하여 새로운 인터페이스를 만들 수 있습니다. 여러 인터페이스를 동시에 확장하는 것도 가능합니다.">
         <h2>인터페이스 확장 (extends)</h2>
         <pre><code class="language-typescript">// 기본 인터페이스 (부모 역할)
 interface Animal {
@@ -206,7 +207,7 @@ interface Pet extends Animal, Dog {
       </section>
 
       <!-- Slide 7: Interface for Functions and Classes -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="인터페이스는 함수의 형태나 클래스가 구현해야 할 규약을 정의하는 데에도 사용됩니다. 호출 시그니처와 implements 키워드를 활용합니다.">
         <h2>인터페이스: 함수와 클래스</h2>
         <pre><code class="language-typescript">// 함수 타입 인터페이스
 interface SearchFunction {
@@ -248,7 +249,7 @@ class Document implements Printable, Loggable {
       </section>
 
       <!-- Slide 8: Type Aliases -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="타입 별칭은 type 키워드로 기존 타입에 새로운 이름을 붙이는 것입니다. 유니온 타입, 튜플, 함수 타입 등 어떤 타입이든 별칭을 만들 수 있습니다.">
         <h2>타입 별칭 (Type Alias)</h2>
         <p style="font-size: 0.85em; color: #aaa;">타입 별칭이란 복잡한 타입에 짧은 이름을 붙여주는 것입니다. <code>type</code> 키워드를 사용합니다.</p>
         <pre><code class="language-typescript">// 객체 타입 별칭: type 이름 = { ... }
@@ -290,7 +291,7 @@ const user: User = {
       </section>
 
       <!-- Slide 9: Interface vs Type -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="인터페이스와 타입 별칭의 차이점을 비교해 봅시다. 인터페이스는 선언 병합이 가능하고 extends를 사용하며, 타입 별칭은 유니온과 튜플 표현이 가능합니다.">
         <h2>Interface vs Type 비교</h2>
         <table class="compare-table">
           <thead>
@@ -345,7 +346,7 @@ const user: User = {
       </section>
 
       <!-- Slide 10: Declaration Merging -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="인터페이스의 고유한 기능인 선언 병합은, 같은 이름의 인터페이스를 여러 번 선언하면 자동으로 합쳐지는 것입니다. 라이브러리 확장에 유용합니다.">
         <h2>선언 병합 (Declaration Merging)</h2>
         <p>interface만의 고유 기능: 같은 이름으로 여러 번 선언하면 자동으로 합쳐집니다.<br>
         <span style="font-size: 0.8em; color: #aaa;">마치 문서에 내용을 추가하듯, 기존 인터페이스에 새 속성을 덧붙일 수 있습니다.</span></p>
@@ -384,7 +385,7 @@ declare global {
       </section>
 
       <!-- Slide 11: Union Types with Type Aliases -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="유니온 타입을 타입 별칭과 함께 사용하면 여러 가능한 타입을 하나의 이름으로 관리할 수 있습니다. 함수의 매개변수가 여러 타입을 받을 때 자주 활용됩니다.">
         <h2>유니온 타입과 타입 별칭</h2>
         <pre><code class="language-typescript">// 문자열 리터럴 (Literal) 유니온: 허용되는 값을 나열
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -419,7 +420,7 @@ function divide(a: number, b: number): Result&lt;number&gt; {
       </section>
 
       <!-- Slide 12: Intersection Types -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="교차 타입은 앰퍼샌드 기호로 여러 타입을 합칩니다. 모든 타입의 속성을 동시에 가져야 하므로, 인터페이스 확장과 비슷한 효과를 냅니다.">
         <h2>교차 타입 (Intersection Type)</h2>
         <p><code>&amp;</code>로 여러 타입을 합쳐 <strong>모든 속성을 동시에 가진</strong> 타입을 생성합니다.<br>
         <span style="font-size: 0.8em; color: #aaa;">유니온(<code>|</code>)이 "이것 또는 저것"이라면, 인터섹션(<code>&amp;</code>)은 "이것 그리고 저것 모두"입니다.</span></p>
@@ -459,7 +460,7 @@ type User = BaseEntity &amp; {
       </section>
 
       <!-- Slide 13: Discriminated Unions -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="판별 유니온은 공통 속성으로 타입을 구분하는 패턴입니다. kind나 type 같은 판별 속성을 두고, switch문으로 분기하면 각 경우에서 정확한 타입을 사용할 수 있습니다.">
         <h2>판별 유니온 (Discriminated Union)</h2>
         <div class="key-point">
           <h3>핵심 패턴</h3>
@@ -493,7 +494,7 @@ function reducer(state: any, action: Action) {
       </section>
 
       <!-- Slide 14: Discriminated Unions - Real Example -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="판별 유니온은 API 응답 처리, 상태 관리, 액션 정의 등 실전에서 매우 자주 사용됩니다. 타입 안전하게 다양한 케이스를 처리할 수 있는 강력한 패턴입니다.">
         <h2>판별 유니온 실전 예제</h2>
         <pre><code class="language-typescript">// API 응답 타입 모델링
 type ApiResponse&lt;T&gt; =
@@ -534,7 +535,7 @@ function processPayment(method: PaymentMethod): void {
       </section>
 
       <!-- Slide 15: Utility Types - Partial, Required -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="Partial은 모든 속성을 선택적으로 만들고, Required는 모든 속성을 필수로 만듭니다. 기존 타입을 변형하여 새로운 타입을 쉽게 만들 수 있습니다.">
         <h2>유틸리티 타입 (Utility Type): Partial, Required</h2>
         <p style="font-size: 0.85em; color: #aaa;">유틸리티 타입이란 TypeScript가 기본 제공하는 "타입 변환 도구"입니다. 기존 타입을 변형해서 새 타입을 만듭니다.</p>
         <pre><code class="language-typescript">interface User {
@@ -574,7 +575,7 @@ function startServer(config: Required&lt;Config&gt;): void {
       </section>
 
       <!-- Slide 16: Utility Types - Pick, Omit -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="Pick은 특정 속성만 골라서 새 타입을 만들고, Omit은 특정 속성을 제외한 새 타입을 만듭니다. 기존 인터페이스에서 필요한 속성만 선택할 때 유용합니다.">
         <h2>유틸리티 타입: Pick, Omit</h2>
         <pre><code class="language-typescript">interface User {
   id: string;
@@ -613,7 +614,7 @@ function createUser(data: CreateUserRequest): UserResponse {
       </section>
 
       <!-- Slide 17: More Utility Types -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="Record는 키와 값의 타입을 지정하여 객체 타입을 만들고, Readonly는 모든 속성을 읽기 전용으로 만듭니다.">
         <h2>유틸리티 타입: Record, Readonly</h2>
         <pre><code class="language-typescript">// Record&lt;K, V&gt; - 키(K) 타입과 값(V) 타입으로 객체 타입 생성 (사전처럼)
 type Role = "admin" | "editor" | "viewer";
@@ -652,7 +653,7 @@ type DeepReadonly&lt;T&gt; = {
       </section>
 
       <!-- Slide 18: Practical Patterns -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="지금까지 배운 인터페이스, 타입 별칭, 유틸리티 타입을 종합적으로 활용하는 실전 패턴을 살펴보겠습니다.">
         <h2>실전 패턴 종합</h2>
         <pre><code class="language-typescript">// 패턴: Entity 시스템
 interface BaseEntity {
@@ -690,7 +691,7 @@ type UpdatePostDTO = UpdateDTO&lt;Post&gt;;
       </section>
 
       <!-- Slide 19: Summary -->
-      <section data-transition="slide">
+      <section data-transition="slide" data-narration="챕터 4를 정리하겠습니다. 인터페이스와 타입 별칭으로 객체의 구조를 정의하고, 유틸리티 타입으로 기존 타입을 변형하며, 판별 유니온으로 타입 안전한 분기를 구현했습니다.">
         <h2>Chapter 4 정리</h2>
         <table class="compare-table" style="font-size: 0.72em;">
           <thead>
@@ -717,7 +718,7 @@ type UpdatePostDTO = UpdateDTO&lt;Post&gt;;
       </section>
 
       <!-- Slide 20: Next Chapter -->
-      <section class="chapter-title" data-transition="zoom">
+      <section class="chapter-title" data-transition="zoom" data-narration="챕터 4를 마치셨습니다. 수고하셨습니다! 다음 챕터에서는 클래스를 학습합니다.">
         <span class="chapter-number">Next</span>
         <h1>수고하셨습니다!</h1>
         <br>
@@ -773,5 +774,6 @@ type UpdatePostDTO = UpdateDTO&lt;Post&gt;;
       }
     }, true);
   </script>
+  <script src="js/narration.js"></script>
 </body>
 </html>

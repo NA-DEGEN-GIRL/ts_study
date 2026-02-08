@@ -7,13 +7,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
   <link rel="stylesheet" href="css/custom.css">
+  <link rel="stylesheet" href="css/narration.css">
 </head>
 <body>
   <div class="reveal">
     <div class="slides">
 
       <!-- Slide 1: Title -->
-      <section>
+      <section data-narration="챕터 9, 모듈과 네임스페이스입니다. 코드를 체계적으로 구조화하는 방법을 배워보겠습니다.">
         <div class="chapter-title">
           <div class="chapter-number">Chapter 9</div>
           <h1>모듈 (Module) & 네임스페이스 (Namespace)</h1>
@@ -29,7 +30,7 @@
       </section>
 
       <!-- Slide 2: ES Modules 기초 -->
-      <section>
+      <section data-narration="ES 모듈은 자바스크립트 표준 모듈 시스템입니다. export로 내보내고 import로 가져오는 방식으로, 코드를 파일 단위로 분리하고 재사용합니다.">
         <h2>ES Modules 기초</h2>
         <div class="tip" style="margin-bottom: 0.5em;">
           <strong>왜 모듈이 필요할까요?</strong> 코드를 파일별로 나눠서 관리하기 위해서입니다. 모듈 없이 모든 코드를 한 파일에 넣으면, 변수 이름이 충돌하고, 코드를 찾기 어렵고, 여러 사람이 동시에 작업하기 힘들어집니다. 모듈은 각 파일을 독립적인 공간으로 만들어 이 문제를 해결합니다.
@@ -66,7 +67,7 @@ console.log(multiply(4, PI)); // 12.56636
       </section>
 
       <!-- Slide 3: Named Exports vs Default Exports -->
-      <section>
+      <section data-narration="Named export는 이름을 지정하여 여러 항목을 내보내고, Default export는 파일당 하나의 기본 항목을 내보냅니다. 두 방식을 혼합하여 사용할 수도 있습니다.">
         <h2>Named vs Default Exports</h2>
         <div class="two-columns">
           <div>
@@ -121,7 +122,7 @@ import MyLog from './logger'; // OK
       </section>
 
       <!-- Slide 4: 다양한 Export 패턴 -->
-      <section>
+      <section data-narration="export할 때 이름을 바꾸거나, 선언과 동시에 export하거나, 파일 끝에서 한꺼번에 export하는 등 다양한 패턴을 활용할 수 있습니다.">
         <h2>다양한 Export 패턴</h2>
         <pre><code class="language-typescript" data-trim>
 // 1. 선언과 동시에 export
@@ -150,7 +151,7 @@ export type { Config };
       </section>
 
       <!-- Slide 5: Re-exporting -->
-      <section>
+      <section data-narration="재내보내기를 사용하면 여러 모듈의 기능을 하나의 진입점에서 모아서 내보낼 수 있습니다. 라이브러리의 공개 API를 구성할 때 유용합니다.">
         <h2>Re-exporting (재내보내기)</h2>
         <p>여러 모듈을 하나의 진입점으로 통합할 수 있습니다.</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -186,7 +187,7 @@ import { User, Post, Comment } from './models';
       </section>
 
       <!-- Slide 6: Dynamic Imports -->
-      <section>
+      <section data-narration="동적 임포트는 import 함수를 사용하여 필요한 시점에 모듈을 로드합니다. 프로미스를 반환하므로 코드 분할과 지연 로딩에 활용됩니다.">
         <h2>Dynamic Imports</h2>
         <p>런타임 (Runtime, 프로그램 실행 시점)에 조건부로 모듈을 로드하는 <code>import()</code> 표현식</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -223,7 +224,7 @@ function App() {
       </section>
 
       <!-- Slide 7: Module Resolution -->
-      <section>
+      <section data-narration="모듈 해석은 import 경로를 실제 파일로 매핑하는 과정입니다. 타입스크립트는 Node 방식과 클래식 방식의 모듈 해석을 지원합니다.">
         <h2>Module Resolution</h2>
         <p>TypeScript가 <code>import</code> 경로를 실제 파일로 변환하는 전략</p>
         <div class="fragment">
@@ -275,7 +276,7 @@ import { lodash } from 'lodash';
       </section>
 
       <!-- Slide 8: Declaration Files (.d.ts) -->
-      <section>
+      <section data-narration="선언 파일은 타입 정보만 담고 있는 파일입니다. 자바스크립트 라이브러리에 타입 정보를 제공하거나, API의 형태를 선언할 때 사용됩니다.">
         <h2>선언 파일 (Declaration File) - .d.ts</h2>
         <p>JavaScript 라이브러리에 타입 정보를 제공하는 파일입니다. <code>declare</code> 키워드는 "이런 타입이 존재한다"고 TypeScript에 알려주는 역할을 합니다.</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -311,7 +312,7 @@ const value = calculate('2 + 3', config); // number
       </section>
 
       <!-- Slide 9: @types 패키지 -->
-      <section>
+      <section data-narration="앳타입스 패키지는 타입 선언이 없는 자바스크립트 라이브러리를 위한 커뮤니티 타입 정의입니다. npm에서 앳타입스 슬래시 라이브러리명으로 설치할 수 있습니다.">
         <h2>@types 패키지</h2>
         <p>DefinitelyTyped - 커뮤니티가 관리하는 타입 선언 저장소</p>
         <pre class="fragment"><code class="language-bash" data-trim>
@@ -340,7 +341,7 @@ app.get('/users/:id', (req: Request, res: Response) => {
       </section>
 
       <!-- Slide 10: Ambient Modules -->
-      <section>
+      <section data-narration="declare module을 사용하면 타입 선언이 없는 외부 모듈의 타입을 직접 정의할 수 있습니다. CSS 모듈이나 이미지 파일 같은 비자바스크립트 리소스의 타입 선언에도 사용됩니다.">
         <h2>앰비언트 모듈 (Ambient Module) - declare module</h2>
         <p>비-JS 파일이나 타입이 없는 모듈에 "이런 타입이 존재한다"고 선언하기</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -381,7 +382,7 @@ declare module '*.json' {
       </section>
 
       <!-- Slide 11: Namespaces -->
-      <section>
+      <section data-narration="네임스페이스는 코드를 논리적으로 그룹화하는 방법입니다. 현재는 ES 모듈이 권장되지만, 전역 스크립트 환경이나 레거시 코드에서 여전히 사용됩니다.">
         <h2>네임스페이스 (Namespace)</h2>
         <p>관련된 코드를 하나의 이름 아래 논리적으로 그룹화하는 TypeScript 고유 기능. 같은 이름의 변수/함수가 충돌하지 않도록 "이름 공간"을 만들어 줍니다.</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -419,7 +420,7 @@ console.log(phoneValidator.isValid('010-1234-5678')); // true
       </section>
 
       <!-- Slide 12: Nested Namespaces -->
-      <section>
+      <section data-narration="네임스페이스 안에 또 다른 네임스페이스를 중첩하여 계층적 구조를 만들 수 있습니다. 점 표기법으로 접근합니다.">
         <h2>중첩 네임스페이스</h2>
         <pre><code class="language-typescript" data-trim>
 namespace App {
@@ -460,7 +461,7 @@ console.log(user.name); // "홍길동"
       </section>
 
       <!-- Slide 13: Namespace vs Module -->
-      <section>
+      <section data-narration="네임스페이스와 모듈의 차이를 비교해 봅시다. 모듈은 파일 기반이고 의존성이 명시적이며, 네임스페이스는 전역 기반이고 수동으로 순서를 관리해야 합니다.">
         <h2>Namespace vs Module 비교</h2>
         <table class="compare-table">
           <thead>
@@ -509,7 +510,7 @@ console.log(user.name); // "홍길동"
       </section>
 
       <!-- Slide 14: Module Augmentation -->
-      <section>
+      <section data-narration="모듈 확장을 사용하면 기존 모듈에 새로운 타입이나 기능을 추가할 수 있습니다. 서드파티 라이브러리의 타입을 확장할 때 유용합니다.">
         <h2>Module Augmentation (모듈 확장)</h2>
         <p>기존 모듈의 타입을 확장하는 고급 기법</p>
         <pre class="fragment"><code class="language-typescript" data-trim>
@@ -543,7 +544,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
       </section>
 
       <!-- Slide 15: Summary -->
-      <section>
+      <section data-narration="챕터 9를 마치겠습니다. ES 모듈의 import와 export, 선언 파일, 앳타입스 패키지, 네임스페이스, 모듈 확장까지 모듈 시스템의 전반을 학습했습니다.">
         <h2>Chapter 9 요약</h2>
         <div class="two-columns">
           <div>
@@ -617,5 +618,6 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
       }
     }, true);
   </script>
+  <script src="js/narration.js"></script>
 </body>
 </html>
